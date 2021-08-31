@@ -1,0 +1,16 @@
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+target
+*.log
+META-INF/
+output/
+.externalToolBuilders/
+.orig
+mvnw
+mvnw.cmd
+.mvn/
+
+.flattened-pom.xml
