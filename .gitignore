@@ -14,3 +14,4 @@ mvnw.cmd
 .mvn/
 
 .flattened-pom.xml
+/flink-connector/kd-flink-elasticsearch6-connector/dependency-reduced-pom.xml

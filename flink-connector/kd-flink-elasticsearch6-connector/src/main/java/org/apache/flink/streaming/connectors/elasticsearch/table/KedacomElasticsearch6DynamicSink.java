@@ -53,6 +53,7 @@ import org.elasticsearch.common.xcontent.XContentType;
  */
 @PublicEvolving
 final class KedacomElasticsearch6DynamicSink implements DynamicTableSink {
+
     @VisibleForTesting
     static final Elasticsearch6RequestFactory REQUEST_FACTORY = new Elasticsearch6RequestFactory();
 
@@ -61,9 +62,9 @@ final class KedacomElasticsearch6DynamicSink implements DynamicTableSink {
     private final Elasticsearch6Configuration config;
 
     public KedacomElasticsearch6DynamicSink(
-            EncodingFormat<SerializationSchema<RowData>> format,
-            Elasticsearch6Configuration config,
-            TableSchema schema) {
+        EncodingFormat<SerializationSchema<RowData>> format,
+        Elasticsearch6Configuration config,
+        TableSchema schema) {
         this(format, config, schema, (ElasticsearchSink.Builder::new));
     }
 
@@ -81,15 +82,16 @@ final class KedacomElasticsearch6DynamicSink implements DynamicTableSink {
 
     @FunctionalInterface
     interface ElasticSearchBuilderProvider {
+
         ElasticsearchSink.Builder<RowData> createBuilder(
-                List<HttpHost> httpHosts, KedacomRowElasticsearchSinkFunction upsertSinkFunction);
+            List<HttpHost> httpHosts, KedacomRowElasticsearchSinkFunction upsertSinkFunction);
     }
 
     KedacomElasticsearch6DynamicSink(
-            EncodingFormat<SerializationSchema<RowData>> format,
-            Elasticsearch6Configuration config,
-            TableSchema schema,
-            ElasticSearchBuilderProvider builderProvider) {
+        EncodingFormat<SerializationSchema<RowData>> format,
+        Elasticsearch6Configuration config,
+        TableSchema schema,
+        ElasticSearchBuilderProvider builderProvider) {
         this.format = format;
         this.schema = schema;
         this.config = config;
@@ -115,20 +117,21 @@ final class KedacomElasticsearch6DynamicSink implements DynamicTableSink {
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
         return () -> {
             SerializationSchema<RowData> format =
-                    this.format.createRuntimeEncoder(context, schema.toRowDataType());
+                this.format.createRuntimeEncoder(context, schema.toRowDataType());
             final KedacomRowElasticsearchSinkFunction upsertFunction =
-                    new KedacomRowElasticsearchSinkFunction(
-                            IndexGeneratorFactory.createIndexGenerator(config.getIndex(), schema),
-                            config.getDocumentType(),
-                            format,
-                            XContentType.JSON,
-                            REQUEST_FACTORY,
-                            KeyExtractor.createKeyExtractor(schema, config.getKeyDelimiter()),
-                            config.config.getOptional(SINK_MODE_OPTION).orElse(KedacomElasticsearchOptions.SinkModeType.OVERWRITE)
-                    );
+                new KedacomRowElasticsearchSinkFunction(
+                    IndexGeneratorFactory.createIndexGenerator(config.getIndex(), schema),
+                    config.getDocumentType(),
+                    format,
+                    XContentType.JSON,
+                    REQUEST_FACTORY,
+                    KeyExtractor.createKeyExtractor(schema, config.getKeyDelimiter()),
+                    config.config.getOptional(SINK_MODE_OPTION)
+                        .orElse(KedacomElasticsearchOptions.SinkModeType.OVERWRITE)
+                );
 
             final ElasticsearchSink.Builder<RowData> builder =
-                    builderProvider.createBuilder(config.getHosts(), upsertFunction);
+                builderProvider.createBuilder(config.getHosts(), upsertFunction);
 
             builder.setFailureHandler(config.getFailureHandler());
             builder.setBulkFlushMaxActions(config.getBulkFlushMaxActions());
@@ -142,17 +145,17 @@ final class KedacomElasticsearch6DynamicSink implements DynamicTableSink {
             // we must overwrite the default factory which is defined with a lambda because of a bug
             // in shading lambda serialization shading see FLINK-18006
             if (config.getUsername().isPresent()
-                    && config.getPassword().isPresent()
-                    && !StringUtils.isNullOrWhitespaceOnly(config.getUsername().get())
-                    && !StringUtils.isNullOrWhitespaceOnly(config.getPassword().get())) {
+                && config.getPassword().isPresent()
+                && !StringUtils.isNullOrWhitespaceOnly(config.getUsername().get())
+                && !StringUtils.isNullOrWhitespaceOnly(config.getPassword().get())) {
                 builder.setRestClientFactory(
-                        new AuthRestClientFactory(
-                                config.getPathPrefix().orElse(null),
-                                config.getUsername().get(),
-                                config.getPassword().get()));
+                    new AuthRestClientFactory(
+                        config.getPathPrefix().orElse(null),
+                        config.getUsername().get(),
+                        config.getPassword().get()));
             } else {
                 builder.setRestClientFactory(
-                        new DefaultRestClientFactory(config.getPathPrefix().orElse(null)));
+                    new DefaultRestClientFactory(config.getPathPrefix().orElse(null)));
             }
 
             final ElasticsearchSink<RowData> sink = builder.build();
@@ -224,7 +227,7 @@ final class KedacomElasticsearch6DynamicSink implements DynamicTableSink {
         private transient CredentialsProvider credentialsProvider;
 
         public AuthRestClientFactory(
-                @Nullable String pathPrefix, String username, String password) {
+            @Nullable String pathPrefix, String username, String password) {
             this.pathPrefix = pathPrefix;
             this.password = password;
             this.username = username;
@@ -238,12 +241,12 @@ final class KedacomElasticsearch6DynamicSink implements DynamicTableSink {
             if (credentialsProvider == null) {
                 credentialsProvider = new BasicCredentialsProvider();
                 credentialsProvider.setCredentials(
-                        AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+                    AuthScope.ANY, new UsernamePasswordCredentials(username, password));
             }
             restClientBuilder.setHttpClientConfigCallback(
-                    httpAsyncClientBuilder ->
-                            httpAsyncClientBuilder.setDefaultCredentialsProvider(
-                                    credentialsProvider));
+                httpAsyncClientBuilder ->
+                    httpAsyncClientBuilder.setDefaultCredentialsProvider(
+                        credentialsProvider));
         }
 
         @Override
@@ -256,8 +259,8 @@ final class KedacomElasticsearch6DynamicSink implements DynamicTableSink {
             }
             AuthRestClientFactory that = (AuthRestClientFactory) o;
             return Objects.equals(pathPrefix, that.pathPrefix)
-                    && Objects.equals(username, that.username)
-                    && Objects.equals(password, that.password);
+                && Objects.equals(username, that.username)
+                && Objects.equals(password, that.password);
         }
 
         @Override
@@ -271,25 +274,26 @@ final class KedacomElasticsearch6DynamicSink implements DynamicTableSink {
      * sink.
      */
     private static class Elasticsearch6RequestFactory implements RequestFactory {
+
         @Override
         public UpdateRequest createUpdateRequest(
-                String index,
-                String docType,
-                String key,
-                XContentType contentType,
-                byte[] document) {
+            String index,
+            String docType,
+            String key,
+            XContentType contentType,
+            byte[] document) {
             return new UpdateRequest(index, docType, key)
-                    .doc(document, contentType)
-                    .upsert(document, contentType);
+                .doc(document, contentType)
+                .upsert(document, contentType);
         }
 
         @Override
         public IndexRequest createIndexRequest(
-                String index,
-                String docType,
-                String key,
-                XContentType contentType,
-                byte[] document) {
+            String index,
+            String docType,
+            String key,
+            XContentType contentType,
+            byte[] document) {
             return new IndexRequest(index, docType, key).source(document, contentType);
         }
 
@@ -309,9 +313,9 @@ final class KedacomElasticsearch6DynamicSink implements DynamicTableSink {
         }
         KedacomElasticsearch6DynamicSink that = (KedacomElasticsearch6DynamicSink) o;
         return Objects.equals(format, that.format)
-                && Objects.equals(schema, that.schema)
-                && Objects.equals(config, that.config)
-                && Objects.equals(builderProvider, that.builderProvider);
+            && Objects.equals(schema, that.schema)
+            && Objects.equals(config, that.config)
+            && Objects.equals(builderProvider, that.builderProvider);
     }
 
     @Override

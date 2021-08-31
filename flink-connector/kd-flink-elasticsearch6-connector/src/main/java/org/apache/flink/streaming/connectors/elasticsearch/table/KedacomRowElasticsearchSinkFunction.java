@@ -18,6 +18,7 @@
 
 package org.apache.flink.streaming.connectors.elasticsearch.table;
 
+import com.alibaba.fastjson.JSON;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.function.Function;
@@ -25,9 +26,6 @@ import javax.annotation.Nullable;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.serialization.SerializationSchema;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonInclude.Include;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction;
 import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
 import org.apache.flink.table.api.TableException;
@@ -60,24 +58,14 @@ class KedacomRowElasticsearchSinkFunction implements ElasticsearchSinkFunction<R
     private final Function<RowData, String> createKey;
     private final KedacomElasticsearchOptions.SinkModeType sinkMode; //kedacom customized
 
-    /**
-     * 序列化的时候，忽略null值
-     */
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    static {
-        objectMapper.setSerializationInclusion(Include.NON_NULL);
-
-    }
-
     public KedacomRowElasticsearchSinkFunction(
-            IndexGenerator indexGenerator,
-            @Nullable String docType, // this is deprecated in es 7+
-            SerializationSchema<RowData> serializationSchema,
-            XContentType contentType,
-            RequestFactory requestFactory,
-            Function<RowData, String> createKey,
-            KedacomElasticsearchOptions.SinkModeType sinkMode) {
+        IndexGenerator indexGenerator,
+        @Nullable String docType, // this is deprecated in es 7+
+        SerializationSchema<RowData> serializationSchema,
+        XContentType contentType,
+        RequestFactory requestFactory,
+        Function<RowData, String> createKey,
+        KedacomElasticsearchOptions.SinkModeType sinkMode) {
         this.indexGenerator = Preconditions.checkNotNull(indexGenerator);
         this.docType = docType;
         this.serializationSchema = Preconditions.checkNotNull(serializationSchema);
@@ -110,13 +98,8 @@ class KedacomRowElasticsearchSinkFunction implements ElasticsearchSinkFunction<R
 
     private byte[] removeNull(RowData row) {
         byte[] b = serializationSchema.serialize(row);
-        try {
-            return objectMapper.writeValueAsBytes(new String(b, StandardCharsets.UTF_8));
-        } catch (JsonProcessingException e) {
-            logger.error("jackson serialize row-data error, row-data : {}, error-msg : {}",
-                row.toString(), e.getMessage());
-        }
-        return null;
+        return JSON.toJSONString(JSON.parse(new String(b, StandardCharsets.UTF_8)))
+            .getBytes(StandardCharsets.UTF_8);
     }
 
     private void processUpsert(RowData row, RequestIndexer indexer) {
@@ -142,10 +125,11 @@ class KedacomRowElasticsearchSinkFunction implements ElasticsearchSinkFunction<R
             indexer.add(indexRequest);
         }
     }
+
     private void processDelete(RowData row, RequestIndexer indexer) {
         final String key = createKey.apply(row);
         final DeleteRequest deleteRequest =
-                requestFactory.createDeleteRequest(indexGenerator.generate(row), docType, key);
+            requestFactory.createDeleteRequest(indexGenerator.generate(row), docType, key);
         indexer.add(deleteRequest);
     }
 
@@ -159,21 +143,21 @@ class KedacomRowElasticsearchSinkFunction implements ElasticsearchSinkFunction<R
         }
         KedacomRowElasticsearchSinkFunction that = (KedacomRowElasticsearchSinkFunction) o;
         return Objects.equals(indexGenerator, that.indexGenerator)
-                && Objects.equals(docType, that.docType)
-                && Objects.equals(serializationSchema, that.serializationSchema)
-                && contentType == that.contentType
-                && Objects.equals(requestFactory, that.requestFactory)
-                && Objects.equals(createKey, that.createKey);
+            && Objects.equals(docType, that.docType)
+            && Objects.equals(serializationSchema, that.serializationSchema)
+            && contentType == that.contentType
+            && Objects.equals(requestFactory, that.requestFactory)
+            && Objects.equals(createKey, that.createKey);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-                indexGenerator,
-                docType,
-                serializationSchema,
-                contentType,
-                requestFactory,
-                createKey);
+            indexGenerator,
+            docType,
+            serializationSchema,
+            contentType,
+            requestFactory,
+            createKey);
     }
 }

@@ -65,101 +65,105 @@ import org.apache.flink.util.StringUtils;
  */
 @Internal
 public class KedacomElasticsearch6DynamicSinkFactory implements DynamicTableSinkFactory {
+
     private Log log = LogFactory.getLog(this.getClass().getSimpleName());
     private static final Set<ConfigOption<?>> requiredOptions =
-            Stream.of(HOSTS_OPTION, INDEX_OPTION, DOCUMENT_TYPE_OPTION).collect(Collectors.toSet());
+        Stream.of(HOSTS_OPTION, INDEX_OPTION, DOCUMENT_TYPE_OPTION).collect(Collectors.toSet());
     private static final Set<ConfigOption<?>> optionalOptions =
-            Stream.of(
-                    KEY_DELIMITER_OPTION,
-                    FAILURE_HANDLER_OPTION,
-                    FLUSH_ON_CHECKPOINT_OPTION,
-                    SINK_MODE_OPTION,
-                    BULK_FLASH_MAX_SIZE_OPTION,
-                    BULK_FLUSH_MAX_ACTIONS_OPTION,
-                    BULK_FLUSH_INTERVAL_OPTION,
-                    BULK_FLUSH_BACKOFF_TYPE_OPTION,
-                    BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION,
-                    BULK_FLUSH_BACKOFF_DELAY_OPTION,
-                    CONNECTION_MAX_RETRY_TIMEOUT_OPTION,
-                    CONNECTION_PATH_PREFIX,
-                    FORMAT_OPTION,
-                    PASSWORD_OPTION,
-                    USERNAME_OPTION)
-                    .collect(Collectors.toSet());
+        Stream.of(
+            KEY_DELIMITER_OPTION,
+            FAILURE_HANDLER_OPTION,
+            FLUSH_ON_CHECKPOINT_OPTION,
+            SINK_MODE_OPTION,
+            BULK_FLASH_MAX_SIZE_OPTION,
+            BULK_FLUSH_MAX_ACTIONS_OPTION,
+            BULK_FLUSH_INTERVAL_OPTION,
+            BULK_FLUSH_BACKOFF_TYPE_OPTION,
+            BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION,
+            BULK_FLUSH_BACKOFF_DELAY_OPTION,
+            CONNECTION_MAX_RETRY_TIMEOUT_OPTION,
+            CONNECTION_PATH_PREFIX,
+            FORMAT_OPTION,
+            PASSWORD_OPTION,
+            USERNAME_OPTION)
+            .collect(Collectors.toSet());
 
     @Override
     public DynamicTableSink createDynamicTableSink(Context context) {
         TableSchema tableSchema = context.getCatalogTable().getSchema();
         ElasticsearchValidationUtils.validatePrimaryKey(tableSchema);
         final FactoryUtil.TableFactoryHelper helper =
-                FactoryUtil.createTableFactoryHelper(this, context);
+            FactoryUtil.createTableFactoryHelper(this, context);
 
         final EncodingFormat<SerializationSchema<RowData>> format =
-                helper.discoverEncodingFormat(SerializationFormatFactory.class, FORMAT_OPTION);
+            helper.discoverEncodingFormat(SerializationFormatFactory.class, FORMAT_OPTION);
 
         helper.validate();
         Configuration configuration = new Configuration();
         context.getCatalogTable().getOptions().forEach(configuration::setString);
         Elasticsearch6Configuration config =
-                new Elasticsearch6Configuration(configuration, context.getClassLoader());
+            new Elasticsearch6Configuration(configuration, context.getClassLoader());
 
         validate(config, configuration);
 
         return new KedacomElasticsearch6DynamicSink(
-                format, config, TableSchemaUtils.getPhysicalSchema(tableSchema));
+            format, config, TableSchemaUtils.getPhysicalSchema(tableSchema));
     }
 
     private void validate(Elasticsearch6Configuration config, Configuration originalConfiguration) {
         config.getFailureHandler(); // checks if we can instantiate the custom failure handler
         config.getHosts(); // validate hosts
         validate(
-                config.getIndex().length() >= 1,
-                () -> String.format("'%s' must not be empty", INDEX_OPTION.key()));
+            config.getIndex().length() >= 1,
+            () -> String.format("'%s' must not be empty", INDEX_OPTION.key()));
         int maxActions = config.getBulkFlushMaxActions();
         validate(
-                maxActions == -1 || maxActions >= 1,
-                () ->
-                        String.format(
-                                "'%s' must be at least 1. Got: %s",
-                                BULK_FLUSH_MAX_ACTIONS_OPTION.key(), maxActions));
+            maxActions == -1 || maxActions >= 1,
+            () ->
+                String.format(
+                    "'%s' must be at least 1. Got: %s",
+                    BULK_FLUSH_MAX_ACTIONS_OPTION.key(), maxActions));
         long maxSize = config.getBulkFlushMaxByteSize();
         long mb1 = 1024 * 1024;
         validate(
-                maxSize == -1 || (maxSize >= mb1 && maxSize % mb1 == 0),
-                () ->
-                        String.format(
-                                "'%s' must be in MB granularity. Got: %s",
-                                BULK_FLASH_MAX_SIZE_OPTION.key(),
-                                originalConfiguration
-                                        .get(BULK_FLASH_MAX_SIZE_OPTION)
-                                        .toHumanReadableString()));
+            maxSize == -1 || (maxSize >= mb1 && maxSize % mb1 == 0),
+            () ->
+                String.format(
+                    "'%s' must be in MB granularity. Got: %s",
+                    BULK_FLASH_MAX_SIZE_OPTION.key(),
+                    originalConfiguration
+                        .get(BULK_FLASH_MAX_SIZE_OPTION)
+                        .toHumanReadableString()));
         validate(
-                config.getBulkFlushBackoffRetries().map(retries -> retries >= 1).orElse(true),
-                () ->
-                        String.format(
-                                "'%s' must be at least 1. Got: %s",
-                                BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION.key(),
-                                config.getBulkFlushBackoffRetries().get()));
+            config.getBulkFlushBackoffRetries().map(retries -> retries >= 1).orElse(true),
+            () ->
+                String.format(
+                    "'%s' must be at least 1. Got: %s",
+                    BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION.key(),
+                    config.getBulkFlushBackoffRetries().get()));
         if (config.getUsername().isPresent()
-                && !StringUtils.isNullOrWhitespaceOnly(config.getUsername().get())) {
+            && !StringUtils.isNullOrWhitespaceOnly(config.getUsername().get())) {
             validate(
-                    config.getPassword().isPresent()
-                            && !StringUtils.isNullOrWhitespaceOnly(config.getPassword().get()),
-                    () ->
-                            String.format(
-                                    "'%s' and '%s' must be set at the same time. Got: username '%s' and password '%s'",
-                                    USERNAME_OPTION.key(),
-                                    PASSWORD_OPTION.key(),
-                                    config.getUsername().get(),
-                                    config.getPassword().orElse("")));
+                config.getPassword().isPresent()
+                    && !StringUtils.isNullOrWhitespaceOnly(config.getPassword().get()),
+                () ->
+                    String.format(
+                        "'%s' and '%s' must be set at the same time. Got: username '%s' and password '%s'",
+                        USERNAME_OPTION.key(),
+                        PASSWORD_OPTION.key(),
+                        config.getUsername().get(),
+                        config.getPassword().orElse("")));
         }
         /*kedacom custom start*/
         //验证 sink.mode
         try {
             Optional<SinkModeType> optional = config.config.getOptional(SINK_MODE_OPTION);
-            if (!optional.isPresent()) log.info("set \"sink.mode\" to default, sink.mode=OVERWRITE");
+            if (!optional.isPresent()) {
+                log.info("set \"sink.mode\" to default, sink.mode=OVERWRITE");
+            }
         } catch (Exception e) {
-            throw new ValidationException("UnSupport option \"sink.mode\", support option is [ merge, upsert, delete].", e);
+            throw new ValidationException(
+                "UnSupport option \"sink.mode\", support option is [ merge, upsert, delete].", e);
         }
         /*kedacom custom end*/
     }

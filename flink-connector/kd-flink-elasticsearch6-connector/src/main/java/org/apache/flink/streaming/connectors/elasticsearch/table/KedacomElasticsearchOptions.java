@@ -32,10 +32,10 @@ public class KedacomElasticsearchOptions {
     }
 
     public static final ConfigOption<SinkModeType> SINK_MODE_OPTION =
-            ConfigOptions.key("sink.mode")
-                    .enumType(SinkModeType.class)
-                    .defaultValue(SinkModeType.OVERWRITE)
-                    .withDescription("Elasticsearch Sink Mode , customized by Kedacom.");
+        ConfigOptions.key("sink.mode")
+            .enumType(SinkModeType.class)
+            .defaultValue(SinkModeType.OVERWRITE)
+            .withDescription("Elasticsearch Sink Mode , customized by Kedacom.");
 
     private KedacomElasticsearchOptions() {
     }
