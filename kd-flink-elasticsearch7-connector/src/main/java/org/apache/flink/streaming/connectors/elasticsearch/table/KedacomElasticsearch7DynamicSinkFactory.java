@@ -26,7 +26,6 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_MAX_ACTIONS_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.CONNECTION_MAX_RETRY_TIMEOUT_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.CONNECTION_PATH_PREFIX;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.DOCUMENT_TYPE_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.FAILURE_HANDLER_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.FLUSH_ON_CHECKPOINT_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.FORMAT_OPTION;
@@ -66,9 +65,9 @@ import org.apache.flink.util.StringUtils;
 @Internal
 public class KedacomElasticsearch7DynamicSinkFactory implements DynamicTableSinkFactory {
 
-    private Log log = LogFactory.getLog(this.getClass().getSimpleName());
+    private final Log log = LogFactory.getLog(this.getClass().getSimpleName());
     private static final Set<ConfigOption<?>> requiredOptions =
-        Stream.of(HOSTS_OPTION, INDEX_OPTION, DOCUMENT_TYPE_OPTION).collect(Collectors.toSet());
+        Stream.of(HOSTS_OPTION, INDEX_OPTION).collect(Collectors.toSet());
     private static final Set<ConfigOption<?>> optionalOptions =
         Stream.of(
             KEY_DELIMITER_OPTION,
@@ -92,6 +91,7 @@ public class KedacomElasticsearch7DynamicSinkFactory implements DynamicTableSink
     public DynamicTableSink createDynamicTableSink(Context context) {
         TableSchema tableSchema = context.getCatalogTable().getSchema();
         ElasticsearchValidationUtils.validatePrimaryKey(tableSchema);
+
         final FactoryUtil.TableFactoryHelper helper =
             FactoryUtil.createTableFactoryHelper(this, context);
 
@@ -163,7 +163,7 @@ public class KedacomElasticsearch7DynamicSinkFactory implements DynamicTableSink
             }
         } catch (Exception e) {
             throw new ValidationException(
-                "UnSupport option \"sink.mode\", support option is [ merge, upsert, delete].", e);
+                "UnSupport option \"sink.mode\", support option is [ merge, upsert].", e);
         }
         /*kedacom custom end*/
     }

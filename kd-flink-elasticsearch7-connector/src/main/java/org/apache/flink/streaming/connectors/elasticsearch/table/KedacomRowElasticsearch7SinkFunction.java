@@ -36,8 +36,6 @@ import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Sink function for converting upserts into Elasticsearch {@link ActionRequest}s.
@@ -46,9 +44,6 @@ import org.slf4j.LoggerFactory;
 class KedacomRowElasticsearch7SinkFunction implements ElasticsearchSinkFunction<RowData> {
 
     private static final long serialVersionUID = 1L;
-
-    private static final Logger logger =
-        LoggerFactory.getLogger(KedacomRowElasticsearch7SinkFunction.class);
 
     private final IndexGenerator indexGenerator;
     private final String docType;

@@ -119,10 +119,11 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
         return () -> {
             SerializationSchema<RowData> format =
                 this.format.createRuntimeEncoder(context, schema.toRowDataType());
+
             final KedacomRowElasticsearch7SinkFunction upsertFunction =
                 new KedacomRowElasticsearch7SinkFunction(
                     IndexGeneratorFactory.createIndexGenerator(config.getIndex(), schema),
-                    config.getDocumentType(),
+                    null, // this is deprecated in es 7+
                     format,
                     XContentType.JSON,
                     REQUEST_FACTORY,
@@ -282,7 +283,7 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
             String key,
             XContentType contentType,
             byte[] document) {
-            return new UpdateRequest(index, docType, key)
+            return new UpdateRequest(index, key)
                 .doc(document, contentType)
                 .upsert(document, contentType);
         }
@@ -294,12 +295,12 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
             String key,
             XContentType contentType,
             byte[] document) {
-            return new IndexRequest(index, docType, key).source(document, contentType);
+            return new IndexRequest(index).id(key).source(document, contentType);
         }
 
         @Override
         public DeleteRequest createDeleteRequest(String index, String docType, String key) {
-            return new DeleteRequest(index, docType, key);
+            return new DeleteRequest(index, key);
         }
     }
 
