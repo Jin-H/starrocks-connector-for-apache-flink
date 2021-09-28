@@ -7,7 +7,7 @@
   <groupId>com.kedacom</groupId>
   <artifactId>flink-component</artifactId>
   <packaging>pom</packaging>
-  <version>${revision}</version>
+  <version>1.0.0</version>
   <modules>
     <module>flink-connector</module>
   </modules>
@@ -15,8 +15,98 @@
   <properties>
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
-    <revision>1.0.0</revision>
+    <revision>1.0.0-${profile.active}</revision>
   </properties>
+
+  <repositories>
+    <repository>
+      <id>kedacom</id>
+      <name>kedacomm</name>
+      <url>http://nexus.kedacom.com/repository/maven-bigdata/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+
+    <repository>
+      <id>kedacom-snapshots</id>
+      <name>kedacomm</name>
+      <url>http://nexus.kedacom.com/repository/maven-bigdata-snapshot/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>alibaba</id>
+      <url>https://maven.aliyun.com/repository/central/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>maven-central</id>
+      <name>maven-central-repo</name>
+      <url>http://repo.maven.apache.org/maven2</url>
+    </repository>
+
+    <repository>
+      <id>ctsp</id>
+      <name>ctsp</name>
+      <url>http://nexus.ctsp.kedacom.com/content/groups/public/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <profiles>
+    <profile>
+      <id>snapshot</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <profile.active>SNAPSHOT</profile.active>
+      </properties>
+      <distributionManagement>
+        <snapshotRepository>
+          <id>kd-maven-bigdata</id>
+          <url>http://nexus.kedacom.com/repository/maven-bigdata-snapshot/</url>
+        </snapshotRepository>
+      </distributionManagement>
+    </profile>
+    <profile>
+      <id>release</id>
+      <properties>
+        <profile.active>RELEASE</profile.active>
+      </properties>
+      <distributionManagement>
+        <repository>
+          <id>kd-maven-bigdata</id>
+          <url>http://nexus.kedacom.com/repository/maven-bigdata/</url>
+        </repository>
+      </distributionManagement>
+    </profile>
+    <profile>
+      <id>rc</id>
+      <properties>
+        <profile.active>RC</profile.active>
+      </properties>
+      <distributionManagement>
+        <repository>
+          <id>kd-maven-bigdata</id>
+          <url>http://nexus.kedacom.com/repository/maven-bigdata/</url>
+        </repository>
+      </distributionManagement>
+    </profile>
+  </profiles>
+
 
   <build>
     <plugins>
