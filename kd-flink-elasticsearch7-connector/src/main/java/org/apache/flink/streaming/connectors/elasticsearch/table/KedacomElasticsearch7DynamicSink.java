@@ -41,6 +41,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -270,7 +271,7 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
     }
 
     /**
-     * Version-specific creation of {@link org.elasticsearch.action.ActionRequest}s used by the
+     * Version-specific creation of {@link ActionRequest}s used by the
      * sink.
      */
     private static class Elasticsearch7RequestFactory implements RequestFactory {
