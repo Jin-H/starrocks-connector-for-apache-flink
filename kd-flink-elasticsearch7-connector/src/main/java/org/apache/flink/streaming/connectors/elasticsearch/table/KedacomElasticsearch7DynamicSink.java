@@ -18,7 +18,7 @@
 
 package org.apache.flink.streaming.connectors.elasticsearch.table;
 
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KedacomElasticsearchOptions.SINK_MODE_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KedacomElasticsearch7Options.SINK_MODE_OPTION;
 
 import java.util.List;
 import java.util.Objects;
@@ -85,7 +85,7 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
     interface ElasticSearchBuilderProvider {
 
         ElasticsearchSink.Builder<RowData> createBuilder(
-            List<HttpHost> httpHosts, KedacomRowElasticsearchSinkFunction upsertSinkFunction);
+            List<HttpHost> httpHosts, KedacomRowElasticsearch7SinkFunction upsertSinkFunction);
     }
 
     KedacomElasticsearch7DynamicSink(
@@ -119,8 +119,8 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
         return () -> {
             SerializationSchema<RowData> format =
                 this.format.createRuntimeEncoder(context, schema.toRowDataType());
-            final KedacomRowElasticsearchSinkFunction upsertFunction =
-                new KedacomRowElasticsearchSinkFunction(
+            final KedacomRowElasticsearch7SinkFunction upsertFunction =
+                new KedacomRowElasticsearch7SinkFunction(
                     IndexGeneratorFactory.createIndexGenerator(config.getIndex(), schema),
                     config.getDocumentType(),
                     format,
@@ -128,7 +128,7 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
                     REQUEST_FACTORY,
                     KeyExtractor.createKeyExtractor(schema, config.getKeyDelimiter()),
                     config.config.getOptional(SINK_MODE_OPTION)
-                        .orElse(KedacomElasticsearchOptions.SinkModeType.OVERWRITE)
+                        .orElse(KedacomElasticsearch7Options.SinkModeType.OVERWRITE)
                 );
 
             final ElasticsearchSink.Builder<RowData> builder =
@@ -271,8 +271,7 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
     }
 
     /**
-     * Version-specific creation of {@link ActionRequest}s used by the
-     * sink.
+     * Version-specific creation of {@link ActionRequest}s used by the sink.
      */
     private static class Elasticsearch7RequestFactory implements RequestFactory {
 

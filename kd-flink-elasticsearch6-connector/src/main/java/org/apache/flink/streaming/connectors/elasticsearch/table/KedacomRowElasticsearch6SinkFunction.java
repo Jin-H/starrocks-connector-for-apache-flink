@@ -43,12 +43,12 @@ import org.slf4j.LoggerFactory;
  * Sink function for converting upserts into Elasticsearch {@link ActionRequest}s.
  */
 @Internal
-class KedacomRowElasticsearchSinkFunction implements ElasticsearchSinkFunction<RowData> {
+class KedacomRowElasticsearch6SinkFunction implements ElasticsearchSinkFunction<RowData> {
 
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger =
-        LoggerFactory.getLogger(KedacomRowElasticsearchSinkFunction.class);
+        LoggerFactory.getLogger(KedacomRowElasticsearch6SinkFunction.class);
 
     private final IndexGenerator indexGenerator;
     private final String docType;
@@ -56,16 +56,16 @@ class KedacomRowElasticsearchSinkFunction implements ElasticsearchSinkFunction<R
     private final XContentType contentType;
     private final RequestFactory requestFactory;
     private final Function<RowData, String> createKey;
-    private final KedacomElasticsearchOptions.SinkModeType sinkMode; //kedacom customized
+    private final KedacomElasticsearch6Options.SinkModeType sinkMode; //kedacom customized
 
-    public KedacomRowElasticsearchSinkFunction(
+    public KedacomRowElasticsearch6SinkFunction(
         IndexGenerator indexGenerator,
         @Nullable String docType, // this is deprecated in es 7+
         SerializationSchema<RowData> serializationSchema,
         XContentType contentType,
         RequestFactory requestFactory,
         Function<RowData, String> createKey,
-        KedacomElasticsearchOptions.SinkModeType sinkMode) {
+        KedacomElasticsearch6Options.SinkModeType sinkMode) {
         this.indexGenerator = Preconditions.checkNotNull(indexGenerator);
         this.docType = docType;
         this.serializationSchema = Preconditions.checkNotNull(serializationSchema);
@@ -105,9 +105,9 @@ class KedacomRowElasticsearchSinkFunction implements ElasticsearchSinkFunction<R
     private void processUpsert(RowData row, RequestIndexer indexer) {
 
         byte[] document;
-        if (KedacomElasticsearchOptions.SinkModeType.MERGE.equals(sinkMode)) {
+        if (KedacomElasticsearch6Options.SinkModeType.MERGE.equals(sinkMode)) {
             document = removeNull(row);
-        } else if (KedacomElasticsearchOptions.SinkModeType.OVERWRITE.equals(sinkMode)) {
+        } else if (KedacomElasticsearch6Options.SinkModeType.OVERWRITE.equals(sinkMode)) {
             document = serializationSchema.serialize(row);
         } else {
             throw new TableException("Unsupported sink.mode : " + sinkMode);
@@ -141,7 +141,7 @@ class KedacomRowElasticsearchSinkFunction implements ElasticsearchSinkFunction<R
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        KedacomRowElasticsearchSinkFunction that = (KedacomRowElasticsearchSinkFunction) o;
+        KedacomRowElasticsearch6SinkFunction that = (KedacomRowElasticsearch6SinkFunction) o;
         return Objects.equals(indexGenerator, that.indexGenerator)
             && Objects.equals(docType, that.docType)
             && Objects.equals(serializationSchema, that.serializationSchema)

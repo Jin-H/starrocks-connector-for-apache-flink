@@ -35,7 +35,7 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.KEY_DELIMITER_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.PASSWORD_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.USERNAME_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KedacomElasticsearchOptions.SINK_MODE_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KedacomElasticsearch6Options.SINK_MODE_OPTION;
 
 import java.util.Optional;
 import java.util.Set;
@@ -48,7 +48,7 @@ import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.connectors.elasticsearch.table.KedacomElasticsearchOptions.SinkModeType;
+import org.apache.flink.streaming.connectors.elasticsearch.table.KedacomElasticsearch6Options.SinkModeType;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.connector.format.EncodingFormat;

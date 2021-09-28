@@ -18,7 +18,7 @@
 
 package org.apache.flink.streaming.connectors.elasticsearch.table;
 
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KedacomElasticsearchOptions.SINK_MODE_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KedacomElasticsearch6Options.SINK_MODE_OPTION;
 
 import java.util.List;
 import java.util.Objects;
@@ -85,7 +85,7 @@ final class KedacomElasticsearch6DynamicSink implements DynamicTableSink {
     interface ElasticSearchBuilderProvider {
 
         ElasticsearchSink.Builder<RowData> createBuilder(
-            List<HttpHost> httpHosts, KedacomRowElasticsearchSinkFunction upsertSinkFunction);
+            List<HttpHost> httpHosts, KedacomRowElasticsearch6SinkFunction upsertSinkFunction);
     }
 
     KedacomElasticsearch6DynamicSink(
@@ -119,8 +119,8 @@ final class KedacomElasticsearch6DynamicSink implements DynamicTableSink {
         return () -> {
             SerializationSchema<RowData> format =
                 this.format.createRuntimeEncoder(context, schema.toRowDataType());
-            final KedacomRowElasticsearchSinkFunction upsertFunction =
-                new KedacomRowElasticsearchSinkFunction(
+            final KedacomRowElasticsearch6SinkFunction upsertFunction =
+                new KedacomRowElasticsearch6SinkFunction(
                     IndexGeneratorFactory.createIndexGenerator(config.getIndex(), schema),
                     config.getDocumentType(),
                     format,
@@ -128,7 +128,7 @@ final class KedacomElasticsearch6DynamicSink implements DynamicTableSink {
                     REQUEST_FACTORY,
                     KeyExtractor.createKeyExtractor(schema, config.getKeyDelimiter()),
                     config.config.getOptional(SINK_MODE_OPTION)
-                        .orElse(KedacomElasticsearchOptions.SinkModeType.OVERWRITE)
+                        .orElse(KedacomElasticsearch6Options.SinkModeType.OVERWRITE)
                 );
 
             final ElasticsearchSink.Builder<RowData> builder =
