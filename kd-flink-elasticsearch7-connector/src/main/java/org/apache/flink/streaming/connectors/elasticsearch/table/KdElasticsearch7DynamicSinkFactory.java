@@ -26,7 +26,6 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_MAX_ACTIONS_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.CONNECTION_MAX_RETRY_TIMEOUT_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.CONNECTION_PATH_PREFIX;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.DOCUMENT_TYPE_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.FAILURE_HANDLER_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.FLUSH_ON_CHECKPOINT_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.FORMAT_OPTION;
@@ -35,7 +34,7 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.KEY_DELIMITER_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.PASSWORD_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.USERNAME_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KedacomElasticsearch6Options.SINK_MODE_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SINK_MODE_OPTION;
 
 import java.util.Optional;
 import java.util.Set;
@@ -48,7 +47,7 @@ import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.connectors.elasticsearch.table.KedacomElasticsearch6Options.SinkModeType;
+import org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SinkModeType;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.connector.format.EncodingFormat;
@@ -61,14 +60,14 @@ import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.StringUtils;
 
 /**
- * A {@link DynamicTableSinkFactory} for discovering {@link KedacomElasticsearch6DynamicSink}.
+ * A {@link DynamicTableSinkFactory} for discovering {@link KdElasticsearch7DynamicSink}.
  */
 @Internal
-public class KedacomElasticsearch6DynamicSinkFactory implements DynamicTableSinkFactory {
+public class KdElasticsearch7DynamicSinkFactory implements DynamicTableSinkFactory {
 
-    private Log log = LogFactory.getLog(this.getClass().getSimpleName());
+    private final Log log = LogFactory.getLog(this.getClass().getSimpleName());
     private static final Set<ConfigOption<?>> requiredOptions =
-        Stream.of(HOSTS_OPTION, INDEX_OPTION, DOCUMENT_TYPE_OPTION).collect(Collectors.toSet());
+        Stream.of(HOSTS_OPTION, INDEX_OPTION).collect(Collectors.toSet());
     private static final Set<ConfigOption<?>> optionalOptions =
         Stream.of(
             KEY_DELIMITER_OPTION,
@@ -92,6 +91,7 @@ public class KedacomElasticsearch6DynamicSinkFactory implements DynamicTableSink
     public DynamicTableSink createDynamicTableSink(Context context) {
         TableSchema tableSchema = context.getCatalogTable().getSchema();
         ElasticsearchValidationUtils.validatePrimaryKey(tableSchema);
+
         final FactoryUtil.TableFactoryHelper helper =
             FactoryUtil.createTableFactoryHelper(this, context);
 
@@ -101,16 +101,16 @@ public class KedacomElasticsearch6DynamicSinkFactory implements DynamicTableSink
         helper.validate();
         Configuration configuration = new Configuration();
         context.getCatalogTable().getOptions().forEach(configuration::setString);
-        Elasticsearch6Configuration config =
-            new Elasticsearch6Configuration(configuration, context.getClassLoader());
+        Elasticsearch7Configuration config =
+            new Elasticsearch7Configuration(configuration, context.getClassLoader());
 
         validate(config, configuration);
 
-        return new KedacomElasticsearch6DynamicSink(
+        return new KdElasticsearch7DynamicSink(
             format, config, TableSchemaUtils.getPhysicalSchema(tableSchema));
     }
 
-    private void validate(Elasticsearch6Configuration config, Configuration originalConfiguration) {
+    private void validate(Elasticsearch7Configuration config, Configuration originalConfiguration) {
         config.getFailureHandler(); // checks if we can instantiate the custom failure handler
         config.getHosts(); // validate hosts
         validate(
@@ -163,7 +163,7 @@ public class KedacomElasticsearch6DynamicSinkFactory implements DynamicTableSink
             }
         } catch (Exception e) {
             throw new ValidationException(
-                "UnSupport option \"sink.mode\", support option is [ merge, upsert, delete].", e);
+                "UnSupport option \"sink.mode\", support option is [ merge, upsert].", e);
         }
         /*kedacom custom end*/
     }
@@ -176,7 +176,7 @@ public class KedacomElasticsearch6DynamicSinkFactory implements DynamicTableSink
 
     @Override
     public String factoryIdentifier() {
-        return "kd-elasticsearch6";
+        return "kd-elasticsearch7";
     }
 
     @Override

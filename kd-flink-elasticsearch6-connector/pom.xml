@@ -21,7 +21,6 @@
       <groupId>org.apache.flink</groupId>
       <artifactId>flink-connector-elasticsearch6_${scala.binary.version}</artifactId>
       <version>${flink.version}</version>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -120,6 +119,13 @@
                   </excludes>
                 </filter>
               </filters>
+              <transformers>
+                <!-- The service transformer is needed to merge META-INF/services files -->
+                <transformer
+                  implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <!-- ... -->
+              </transformers>
+
               <relocations>
                 <!-- Force relocation of all Elasticsearch dependencies. -->
                 <relocation>
@@ -145,6 +151,93 @@
                 <relocation>
                   <pattern>com.fasterxml.jackson</pattern>
                   <shadedPattern>org.apache.flink.elasticsearch6.shaded.com.fasterxml.jackson
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.flink.streaming.connectors.elasticsearch.table</pattern>
+                  <shadedPattern>org.apache.flink.streaming.connectors.elasticsearch6.table
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.flink.streaming.connectors.elasticsearch.index</pattern>
+                  <shadedPattern>org.apache.flink.streaming.connectors.elasticsearch6.index
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.flink.streaming.connectors.elasticsearch.util</pattern>
+                  <shadedPattern>org.apache.flink.streaming.connectors.elasticsearch6.util
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer
+                  </pattern>
+                  <shadedPattern>
+                    org.apache.flink.streaming.connectors.elasticsearch6.RequestIndexer
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>
+                    org.apache.flink.streaming.connectors.elasticsearch.BufferingNoOpRequestIndexer
+                  </pattern>
+                  <shadedPattern>
+                    org.apache.flink.streaming.connectors.elasticsearch6.BufferingNoOpRequestIndexer
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>
+                    org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchUpsertTableSinkFactoryBase
+                  </pattern>
+                  <shadedPattern>
+                    org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchUpsertTableSinkFactoryBase
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>
+                    org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchUpsertTableSinkBase
+                  </pattern>
+                  <shadedPattern>
+                    org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchUpsertTableSinkBase
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>
+                    org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction
+                  </pattern>
+                  <shadedPattern>
+                    org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchSinkFunction
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkBase
+                  </pattern>
+                  <shadedPattern>
+                    org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchSinkBase
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>
+                    org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchApiCallBridge
+                  </pattern>
+                  <shadedPattern>
+                    org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchApiCallBridge
+                  </shadedPattern>
+                </relocation>
+
+                <relocation>
+                  <pattern>
+                    org.apache.flink.streaming.connectors.elasticsearch.BufferingNoOpRequestIndexer
+                  </pattern>
+                  <shadedPattern>
+                    org.apache.flink.streaming.connectors.elasticsearch6.BufferingNoOpRequestIndexer
+                  </shadedPattern>
+                </relocation>
+
+                <relocation>
+                  <pattern>
+                    org.apache.flink.streaming.connectors.elasticsearch.ActionRequestFailureHandler
+                  </pattern>
+                  <shadedPattern>
+                    org.apache.flink.streaming.connectors.elasticsearch6.ActionRequestFailureHandler
                   </shadedPattern>
                 </relocation>
               </relocations>

@@ -18,7 +18,7 @@
 
 package org.apache.flink.streaming.connectors.elasticsearch.table;
 
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KedacomElasticsearch7Options.SINK_MODE_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.SINK_MODE_OPTION;
 
 import java.util.List;
 import java.util.Objects;
@@ -26,8 +26,8 @@ import javax.annotation.Nullable;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.serialization.SerializationSchema;
-import org.apache.flink.streaming.connectors.elasticsearch7.ElasticsearchSink;
-import org.apache.flink.streaming.connectors.elasticsearch7.RestClientFactory;
+import org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchSink;
+import org.apache.flink.streaming.connectors.elasticsearch6.RestClientFactory;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.format.EncodingFormat;
@@ -53,18 +53,18 @@ import org.elasticsearch.common.xcontent.XContentType;
  * logical description.
  */
 @PublicEvolving
-final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
+final class KdElasticsearch6DynamicSink implements DynamicTableSink {
 
     @VisibleForTesting
-    static final Elasticsearch7RequestFactory REQUEST_FACTORY = new Elasticsearch7RequestFactory();
+    static final KdElasticsearch6RequestFactory REQUEST_FACTORY = new KdElasticsearch6RequestFactory();
 
     private final EncodingFormat<SerializationSchema<RowData>> format;
     private final TableSchema schema;
-    private final Elasticsearch7Configuration config;
+    private final Elasticsearch6Configuration config;
 
-    public KedacomElasticsearch7DynamicSink(
+    public KdElasticsearch6DynamicSink(
         EncodingFormat<SerializationSchema<RowData>> format,
-        Elasticsearch7Configuration config,
+        Elasticsearch6Configuration config,
         TableSchema schema) {
         this(format, config, schema, (ElasticsearchSink.Builder::new));
     }
@@ -79,20 +79,20 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
     // on the sink itself.
     // --------------------------------------------------------------
 
-    private final ElasticSearchBuilderProvider builderProvider;
+    private final KdElasticSearchBuilderProvider builderProvider;
 
     @FunctionalInterface
-    interface ElasticSearchBuilderProvider {
+    interface KdElasticSearchBuilderProvider {
 
         ElasticsearchSink.Builder<RowData> createBuilder(
-            List<HttpHost> httpHosts, KedacomRowElasticsearch7SinkFunction upsertSinkFunction);
+            List<HttpHost> httpHosts, KdRowElasticsearch6SinkFunction upsertSinkFunction);
     }
 
-    KedacomElasticsearch7DynamicSink(
+    KdElasticsearch6DynamicSink(
         EncodingFormat<SerializationSchema<RowData>> format,
-        Elasticsearch7Configuration config,
+        Elasticsearch6Configuration config,
         TableSchema schema,
-        ElasticSearchBuilderProvider builderProvider) {
+        KdElasticSearchBuilderProvider builderProvider) {
         this.format = format;
         this.schema = schema;
         this.config = config;
@@ -119,17 +119,16 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
         return () -> {
             SerializationSchema<RowData> format =
                 this.format.createRuntimeEncoder(context, schema.toRowDataType());
-
-            final KedacomRowElasticsearch7SinkFunction upsertFunction =
-                new KedacomRowElasticsearch7SinkFunction(
+            final KdRowElasticsearch6SinkFunction upsertFunction =
+                new KdRowElasticsearch6SinkFunction(
                     IndexGeneratorFactory.createIndexGenerator(config.getIndex(), schema),
-                    null, // this is deprecated in es 7+
+                    config.getDocumentType(),
                     format,
                     XContentType.JSON,
                     REQUEST_FACTORY,
                     KeyExtractor.createKeyExtractor(schema, config.getKeyDelimiter()),
                     config.config.getOptional(SINK_MODE_OPTION)
-                        .orElse(KedacomElasticsearch7Options.SinkModeType.OVERWRITE)
+                        .orElse(KdElasticsearch6Options.SinkModeType.OVERWRITE)
                 );
 
             final ElasticsearchSink.Builder<RowData> builder =
@@ -151,13 +150,13 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
                 && !StringUtils.isNullOrWhitespaceOnly(config.getUsername().get())
                 && !StringUtils.isNullOrWhitespaceOnly(config.getPassword().get())) {
                 builder.setRestClientFactory(
-                    new AuthRestClientFactory(
+                    new KdAuthRestClientFactory(
                         config.getPathPrefix().orElse(null),
                         config.getUsername().get(),
                         config.getPassword().get()));
             } else {
                 builder.setRestClientFactory(
-                    new DefaultRestClientFactory(config.getPathPrefix().orElse(null)));
+                    new KdDefaultRestClientFactory(config.getPathPrefix().orElse(null)));
             }
 
             final ElasticsearchSink<RowData> sink = builder.build();
@@ -177,18 +176,18 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
 
     @Override
     public String asSummaryString() {
-        return "kd-elasticsearch7";
+        return "kd-elasticsearch6";
     }
 
     /**
      * Serializable {@link RestClientFactory} used by the sink.
      */
     @VisibleForTesting
-    static class DefaultRestClientFactory implements RestClientFactory {
+    static class KdDefaultRestClientFactory implements RestClientFactory {
 
         private final String pathPrefix;
 
-        public DefaultRestClientFactory(@Nullable String pathPrefix) {
+        public KdDefaultRestClientFactory(@Nullable String pathPrefix) {
             this.pathPrefix = pathPrefix;
         }
 
@@ -207,7 +206,7 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            DefaultRestClientFactory that = (DefaultRestClientFactory) o;
+            KdDefaultRestClientFactory that = (KdDefaultRestClientFactory) o;
             return Objects.equals(pathPrefix, that.pathPrefix);
         }
 
@@ -221,14 +220,14 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
      * Serializable {@link RestClientFactory} used by the sink which enable authentication.
      */
     @VisibleForTesting
-    static class AuthRestClientFactory implements RestClientFactory {
+    static class KdAuthRestClientFactory implements RestClientFactory {
 
         private final String pathPrefix;
         private final String username;
         private final String password;
         private transient CredentialsProvider credentialsProvider;
 
-        public AuthRestClientFactory(
+        public KdAuthRestClientFactory(
             @Nullable String pathPrefix, String username, String password) {
             this.pathPrefix = pathPrefix;
             this.password = password;
@@ -259,7 +258,7 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            AuthRestClientFactory that = (AuthRestClientFactory) o;
+            KdAuthRestClientFactory that = (KdAuthRestClientFactory) o;
             return Objects.equals(pathPrefix, that.pathPrefix)
                 && Objects.equals(username, that.username)
                 && Objects.equals(password, that.password);
@@ -274,7 +273,7 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
     /**
      * Version-specific creation of {@link ActionRequest}s used by the sink.
      */
-    private static class Elasticsearch7RequestFactory implements RequestFactory {
+    private static class KdElasticsearch6RequestFactory implements RequestFactory {
 
         @Override
         public UpdateRequest createUpdateRequest(
@@ -283,7 +282,7 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
             String key,
             XContentType contentType,
             byte[] document) {
-            return new UpdateRequest(index, key)
+            return new UpdateRequest(index, docType, key)
                 .doc(document, contentType)
                 .upsert(document, contentType);
         }
@@ -295,12 +294,12 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
             String key,
             XContentType contentType,
             byte[] document) {
-            return new IndexRequest(index).id(key).source(document, contentType);
+            return new IndexRequest(index, docType, key).source(document, contentType);
         }
 
         @Override
         public DeleteRequest createDeleteRequest(String index, String docType, String key) {
-            return new DeleteRequest(index, key);
+            return new DeleteRequest(index, docType, key);
         }
     }
 
@@ -312,7 +311,7 @@ final class KedacomElasticsearch7DynamicSink implements DynamicTableSink {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        KedacomElasticsearch7DynamicSink that = (KedacomElasticsearch7DynamicSink) o;
+        KdElasticsearch6DynamicSink that = (KdElasticsearch6DynamicSink) o;
         return Objects.equals(format, that.format)
             && Objects.equals(schema, that.schema)
             && Objects.equals(config, that.config)
