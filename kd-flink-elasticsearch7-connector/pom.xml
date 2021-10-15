@@ -170,91 +170,13 @@
                   </shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.apache.flink.streaming.connectors.elasticsearch.table</pattern>
-                  <shadedPattern>org.apache.flink.streaming.connectors.elasticsearch7.table
+                  <pattern>org.apache.flink.streaming.connectors.elasticsearch</pattern>
+                  <shadedPattern>org.apache.flink.streaming.connectors.es7
                   </shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.apache.flink.streaming.connectors.elasticsearch.util</pattern>
-                  <shadedPattern>org.apache.flink.streaming.connectors.elasticsearch7.util
-                  </shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.flink.streaming.connectors.elasticsearch.index</pattern>
-                  <shadedPattern>org.apache.flink.streaming.connectors.elasticsearch7.index
-                  </shadedPattern>
-                </relocation>
-
-                <relocation>
-                  <pattern>org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer
-                  </pattern>
-                  <shadedPattern>
-                    org.apache.flink.streaming.connectors.elasticsearch7.RequestIndexer
-                  </shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>
-                    org.apache.flink.streaming.connectors.elasticsearch.PreElasticsearch6BulkProcessorIndexer
-                  </pattern>
-                  <shadedPattern>
-                    org.apache.flink.streaming.connectors.elasticsearch7.PreElasticsearch6BulkProcessorIndexer
-                  </shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>
-                    org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchUpsertTableSinkFactoryBase
-                  </pattern>
-                  <shadedPattern>
-                    org.apache.flink.streaming.connectors.elasticsearch7.ElasticsearchUpsertTableSinkFactoryBase
-                  </shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>
-                    org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchUpsertTableSinkBase
-                  </pattern>
-                  <shadedPattern>
-                    org.apache.flink.streaming.connectors.elasticsearch7.ElasticsearchUpsertTableSinkBase
-                  </shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>
-                    org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction
-                  </pattern>
-                  <shadedPattern>
-                    org.apache.flink.streaming.connectors.elasticsearch7.ElasticsearchSinkFunction
-                  </shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkBase
-                  </pattern>
-                  <shadedPattern>
-                    org.apache.flink.streaming.connectors.elasticsearch7.ElasticsearchSinkBase
-                  </shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>
-                    org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchApiCallBridge
-                  </pattern>
-                  <shadedPattern>
-                    org.apache.flink.streaming.connectors.elasticsearch7.ElasticsearchApiCallBridge
-                  </shadedPattern>
-                </relocation>
-
-                <relocation>
-                  <pattern>
-                    org.apache.flink.streaming.connectors.elasticsearch.BufferingNoOpRequestIndexer
-                  </pattern>
-                  <shadedPattern>
-                    org.apache.flink.streaming.connectors.elasticsearch7.BufferingNoOpRequestIndexer
-                  </shadedPattern>
-                </relocation>
-
-                <relocation>
-                  <pattern>
-                    org.apache.flink.streaming.connectors.elasticsearch.ActionRequestFailureHandler
-                  </pattern>
-                  <shadedPattern>
-                    org.apache.flink.streaming.connectors.elasticsearch7.ActionRequestFailureHandler
+                  <pattern>org.apache.flink.streaming.connectors.elasticsearch7</pattern>
+                  <shadedPattern>org.apache.flink.streaming.connectors.es7
                   </shadedPattern>
                 </relocation>
 
