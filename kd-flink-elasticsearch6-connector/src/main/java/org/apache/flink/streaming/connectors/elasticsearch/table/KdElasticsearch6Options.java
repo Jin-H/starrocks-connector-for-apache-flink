@@ -24,7 +24,7 @@ import org.apache.flink.configuration.ConfigOptions;
 /**
  * Options for {@link org.apache.flink.table.factories.DynamicTableSinkFactory} for Elasticsearch.
  */
-public class KedacomElasticsearchOptions {
+public class KdElasticsearch6Options {
 
     public enum SinkModeType {
         MERGE,//null值不覆盖原有值
@@ -37,6 +37,6 @@ public class KedacomElasticsearchOptions {
             .defaultValue(SinkModeType.OVERWRITE)
             .withDescription("Elasticsearch Sink Mode , customized by Kedacom.");
 
-    private KedacomElasticsearchOptions() {
+    private KdElasticsearch6Options() {
     }
 }

@@ -35,7 +35,7 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.KEY_DELIMITER_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.PASSWORD_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.USERNAME_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KedacomElasticsearchOptions.SINK_MODE_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.SINK_MODE_OPTION;
 
 import java.util.Optional;
 import java.util.Set;
@@ -48,7 +48,7 @@ import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.connectors.elasticsearch.table.KedacomElasticsearchOptions.SinkModeType;
+import org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.SinkModeType;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.connector.format.EncodingFormat;
@@ -61,10 +61,10 @@ import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.StringUtils;
 
 /**
- * A {@link DynamicTableSinkFactory} for discovering {@link KedacomElasticsearch6DynamicSink}.
+ * A {@link DynamicTableSinkFactory} for discovering {@link KdElasticsearch6DynamicSink}.
  */
 @Internal
-public class KedacomElasticsearch6DynamicSinkFactory implements DynamicTableSinkFactory {
+public class KdElasticsearch6DynamicSinkFactory implements DynamicTableSinkFactory {
 
     private Log log = LogFactory.getLog(this.getClass().getSimpleName());
     private static final Set<ConfigOption<?>> requiredOptions =
@@ -106,7 +106,7 @@ public class KedacomElasticsearch6DynamicSinkFactory implements DynamicTableSink
 
         validate(config, configuration);
 
-        return new KedacomElasticsearch6DynamicSink(
+        return new KdElasticsearch6DynamicSink(
             format, config, TableSchemaUtils.getPhysicalSchema(tableSchema));
     }
 

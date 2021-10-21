@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <groupId>com.kedacom</groupId>
+    <artifactId>flink-component</artifactId>
+    <version>${revision}</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>kd-flink-elasticsearch7-connector</artifactId>
+
+  <properties>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-connector-elasticsearch7_${scala.binary.version}</artifactId>
+      <version>${flink.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-table-common</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-table-api-java-bridge_${scala.binary.version}</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-json</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>fastjson</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>${maven.shade.version}</version>
+        <executions>
+          <execution>
+            <id>shade-flink</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <shadeTestJar>false</shadeTestJar>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <artifactSet>
+                <includes>
+                  <include>*:*</include>
+                </includes>
+                <excludes>
+                  <!-- These dependencies are not required. -->
+                  <exclude>com.tdunning:t-digest</exclude>
+                  <exclude>joda-time:joda-time</exclude>
+                  <exclude>net.sf.jopt-simple:jopt-simple</exclude>
+                  <exclude>org.elasticsearch:jna</exclude>
+                  <exclude>org.hdrhistogram:HdrHistogram</exclude>
+                  <exclude>org.yaml:snakeyaml</exclude>
+                </excludes>
+              </artifactSet>
+              <filters>
+                <!-- Unless otherwise noticed these filters only serve to reduce the size of the resulting
+                  jar by removing unnecessary files -->
+                <filter>
+                  <artifact>org.elasticsearch:elasticsearch</artifact>
+                  <excludes>
+                    <exclude>config/**</exclude>
+                    <exclude>modules.txt</exclude>
+                    <exclude>plugins.txt</exclude>
+                    <exclude>org/joda/**</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.elasticsearch.client:elasticsearch-rest-high-level-client</artifact>
+                  <excludes>
+                    <exclude>forbidden/**</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.apache.httpcomponents:httpclient</artifact>
+                  <excludes>
+                    <exclude>mozilla/**</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.apache.lucene:lucene-analyzers-common</artifact>
+                  <excludes>
+                    <exclude>org/tartarus/**</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <!-- exclude Java 9 specific classes as otherwise the shade-plugin crashes -->
+                    <exclude>META-INF/versions/**</exclude>
+                    <exclude>META-INF/services/com.fasterxml.**</exclude>
+                    <exclude>META-INF/services/org.apache.lucene.**</exclude>
+                    <exclude>META-INF/services/org.elasticsearch.**</exclude>
+                    <exclude>META-INF/LICENSE.txt</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <transformers>
+                <!-- The service transformer is needed to merge META-INF/services files -->
+                <transformer
+                  implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <!-- ... -->
+              </transformers>
+
+              <relocations>
+                <!-- Force relocation of all Elasticsearch dependencies. -->
+                <relocation>
+                  <pattern>org.apache.commons</pattern>
+                  <shadedPattern>org.apache.flink.elasticsearch7.shaded.org.apache.commons
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.http</pattern>
+                  <shadedPattern>org.apache.flink.elasticsearch7.shaded.org.apache.http
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.lucene</pattern>
+                  <shadedPattern>org.apache.flink.elasticsearch7.shaded.org.apache.lucene
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.elasticsearch</pattern>
+                  <shadedPattern>org.apache.flink.elasticsearch7.shaded.org.elasticsearch
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.fasterxml.jackson</pattern>
+                  <shadedPattern>org.apache.flink.elasticsearch7.shaded.com.fasterxml.jackson
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.carrotsearch.hppc</pattern>
+                  <shadedPattern>org.apache.flink.elasticsearch7.shaded.com.carrotsearch.hppc
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.github.mustachejava</pattern>
+                  <shadedPattern>org.apache.flink.elasticsearch7.shaded.com.github.mustachejava
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.flink.streaming.connectors.elasticsearch</pattern>
+                  <shadedPattern>org.apache.flink.streaming.connectors.es7
+                  </shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.flink.streaming.connectors.elasticsearch7</pattern>
+                  <shadedPattern>org.apache.flink.streaming.connectors.es7
+                  </shadedPattern>
+                </relocation>
+
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
