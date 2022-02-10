@@ -18,6 +18,7 @@
 
 package org.apache.flink.streaming.connectors.elasticsearch.table;
 
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SINK_MODE_FIELD_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SINK_MODE_OPTION;
 
 import java.util.List;
@@ -130,7 +131,8 @@ final class KdElasticsearch7DynamicSink implements DynamicTableSink {
                     REQUEST_FACTORY,
                     KeyExtractor.createKeyExtractor(schema, config.getKeyDelimiter()),
                     config.config.getOptional(SINK_MODE_OPTION)
-                        .orElse(KdElasticsearch7Options.SinkModeType.OVERWRITE)
+                        .orElse(KdElasticsearch7Options.SinkModeType.OVERWRITE),
+                    config.config.getOptional(SINK_MODE_FIELD_OPTION).orElse(null)
                 );
 
             final ElasticsearchSink.Builder<RowData> builder =

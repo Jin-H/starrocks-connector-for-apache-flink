@@ -28,7 +28,9 @@ public class KdElasticsearch7Options {
 
     public enum SinkModeType {
         MERGE,//null值不覆盖原有值
-        OVERWRITE//null值覆盖原有值
+        OVERWRITE,//null值覆盖原有值
+        FIELD//通过doc中的字段判断Merge或Overwrite模式
+
     }
 
     public static final ConfigOption<SinkModeType> SINK_MODE_OPTION =
@@ -36,6 +38,13 @@ public class KdElasticsearch7Options {
             .enumType(SinkModeType.class)
             .defaultValue(SinkModeType.OVERWRITE)
             .withDescription("Elasticsearch Sink Mode , customized by Kedacom.");
+
+    public static final ConfigOption<String> SINK_MODE_FIELD_OPTION =
+        ConfigOptions.key("sink.mode.field")
+            .stringType()
+            .noDefaultValue()
+            .withDescription("Elasticsearch Sink Mode Field , Shift Merge&Overwrite By doc's Field , customized by Kedacom.");
+
 
     private KdElasticsearch7Options() {
     }

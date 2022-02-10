@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.function.Function;
 import javax.annotation.Nullable;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.serialization.SerializationSchema;
@@ -57,6 +58,8 @@ class KdRowElasticsearch6SinkFunction implements ElasticsearchSinkFunction<RowDa
     private final RequestFactory requestFactory;
     private final Function<RowData, String> createKey;
     private final KdElasticsearch6Options.SinkModeType sinkMode; //kedacom customized
+    private final String sinkModeField; //kedacom customized
+    private final String mergeFlag = "1";
 
     public KdRowElasticsearch6SinkFunction(
         IndexGenerator indexGenerator,
@@ -65,7 +68,8 @@ class KdRowElasticsearch6SinkFunction implements ElasticsearchSinkFunction<RowDa
         XContentType contentType,
         RequestFactory requestFactory,
         Function<RowData, String> createKey,
-        KdElasticsearch6Options.SinkModeType sinkMode) {
+        KdElasticsearch6Options.SinkModeType sinkMode,
+        String sinkModeField) {
         this.indexGenerator = Preconditions.checkNotNull(indexGenerator);
         this.docType = docType;
         this.serializationSchema = Preconditions.checkNotNull(serializationSchema);
@@ -73,6 +77,7 @@ class KdRowElasticsearch6SinkFunction implements ElasticsearchSinkFunction<RowDa
         this.requestFactory = Preconditions.checkNotNull(requestFactory);
         this.createKey = Preconditions.checkNotNull(createKey);
         this.sinkMode = sinkMode;
+        this.sinkModeField = sinkModeField;
     }
 
     @Override
@@ -85,7 +90,15 @@ class KdRowElasticsearch6SinkFunction implements ElasticsearchSinkFunction<RowDa
         switch (element.getRowKind()) {
             case INSERT:
             case UPDATE_AFTER:
-                processUpsert(element, indexer);
+                if (KdElasticsearch6Options.SinkModeType.MERGE.equals(sinkMode)) {
+                    processMergeUpsert(element, indexer);
+                } else if (KdElasticsearch6Options.SinkModeType.OVERWRITE.equals(sinkMode)) {
+                    processOverwriteUpsert(element, indexer);
+                } else if (KdElasticsearch6Options.SinkModeType.FIELD.equals(sinkMode)) {
+                    processFieldUpsert(element, indexer, sinkModeField);
+                } else {
+                    throw new TableException("Unsupported sink.mode : " + sinkMode);
+                }
                 break;
             case UPDATE_BEFORE:
             case DELETE:
@@ -96,22 +109,20 @@ class KdRowElasticsearch6SinkFunction implements ElasticsearchSinkFunction<RowDa
         }
     }
 
-    private byte[] removeNull(RowData row) {
+    //region kedacom customized
+    private byte[] handleNullByField(RowData row, String field) {
         byte[] b = serializationSchema.serialize(row);
-        return JSON.toJSONString(JSON.parse(new String(b, StandardCharsets.UTF_8)))
-            .getBytes(StandardCharsets.UTF_8);
+        JSONObject jsonObject = JSON.parseObject(new String(b, StandardCharsets.UTF_8));
+        //当未启用Field模式 或 数据中的flag为true时，
+        if (field == null || mergeFlag.equals(jsonObject.get(field))) {
+            jsonObject.remove(field);//移除flag
+            return JSON.parseObject(new String(b, StandardCharsets.UTF_8)).toJSONString().getBytes();
+        }
+        return b;
     }
 
-    private void processUpsert(RowData row, RequestIndexer indexer) {
-
-        byte[] document;
-        if (KdElasticsearch6Options.SinkModeType.MERGE.equals(sinkMode)) {
-            document = removeNull(row);
-        } else if (KdElasticsearch6Options.SinkModeType.OVERWRITE.equals(sinkMode)) {
-            document = serializationSchema.serialize(row);
-        } else {
-            throw new TableException("Unsupported sink.mode : " + sinkMode);
-        }
+    private void processFieldUpsert(RowData row, RequestIndexer indexer, String Field) {
+        final byte[] document = handleNullByField(row, Field);
         final String key = createKey.apply(row);
         if (key != null) {
             final UpdateRequest updateRequest =
@@ -125,6 +136,45 @@ class KdRowElasticsearch6SinkFunction implements ElasticsearchSinkFunction<RowDa
             indexer.add(indexRequest);
         }
     }
+
+    private byte[] removeNull(RowData row) {
+        byte[] b = serializationSchema.serialize(row);
+        return JSON.toJSONString(JSON.parse(new String(b, StandardCharsets.UTF_8)))
+            .getBytes(StandardCharsets.UTF_8);
+    }
+
+    private void processMergeUpsert(RowData row, RequestIndexer indexer) {
+        final byte[] document = removeNull(row);
+        final String key = createKey.apply(row);
+        if (key != null) {
+            final UpdateRequest updateRequest =
+                requestFactory.createUpdateRequest(
+                    indexGenerator.generate(row), docType, key, contentType, document);
+            indexer.add(updateRequest);
+        } else {
+            final IndexRequest indexRequest =
+                requestFactory.createIndexRequest(
+                    indexGenerator.generate(row), docType, key, contentType, document);
+            indexer.add(indexRequest);
+        }
+    }
+
+    private void processOverwriteUpsert(RowData row, RequestIndexer indexer) {
+        final byte[] document = serializationSchema.serialize(row);
+        final String key = createKey.apply(row);
+        if (key != null) {
+            final UpdateRequest updateRequest =
+                requestFactory.createUpdateRequest(
+                    indexGenerator.generate(row), docType, key, contentType, document);
+            indexer.add(updateRequest);
+        } else {
+            final IndexRequest indexRequest =
+                requestFactory.createIndexRequest(
+                    indexGenerator.generate(row), docType, key, contentType, document);
+            indexer.add(indexRequest);
+        }
+    }
+    //endregion
 
     private void processDelete(RowData row, RequestIndexer indexer) {
         final String key = createKey.apply(row);
