@@ -164,8 +164,10 @@ public class KdElasticsearch6DynamicSinkFactory implements DynamicTableSinkFacto
         } else {
             if (SinkModeType.FIELD.equals(optional.get())) {
                 Optional<String> fieldOption = config.config.getOptional(SINK_MODE_FIELD_OPTION);
-                if (!fieldOption.isPresent() || org.apache.commons.lang3.StringUtils.isBlank(fieldOption.get())) {
-                    throw new ValidationException("Elasticsearch table with sink.mode.field cannot be bull or blank When sink.mode=Field.");
+                if (!fieldOption.isPresent() || StringUtils
+                    .isNullOrWhitespaceOnly(fieldOption.get())) {
+                    throw new ValidationException(
+                        "Elasticsearch table with sink.mode.field cannot be bull or blank When sink.mode=Field.");
                 }
             }
         }
