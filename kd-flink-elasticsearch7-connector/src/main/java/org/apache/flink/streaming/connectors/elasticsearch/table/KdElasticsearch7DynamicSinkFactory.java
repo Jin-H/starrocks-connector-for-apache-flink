@@ -34,6 +34,7 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.KEY_DELIMITER_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.PASSWORD_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.USERNAME_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SINK_MODE_FIELD_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SINK_MODE_OPTION;
 
 import java.util.Optional;
@@ -74,6 +75,7 @@ public class KdElasticsearch7DynamicSinkFactory implements DynamicTableSinkFacto
             FAILURE_HANDLER_OPTION,
             FLUSH_ON_CHECKPOINT_OPTION,
             SINK_MODE_OPTION,
+            SINK_MODE_FIELD_OPTION,
             BULK_FLASH_MAX_SIZE_OPTION,
             BULK_FLUSH_MAX_ACTIONS_OPTION,
             BULK_FLUSH_INTERVAL_OPTION,
@@ -154,18 +156,22 @@ public class KdElasticsearch7DynamicSinkFactory implements DynamicTableSinkFacto
                         config.getUsername().get(),
                         config.getPassword().orElse("")));
         }
-        /*kedacom custom start*/
+        //region kedacom custom
         //验证 sink.mode
-        try {
-            Optional<SinkModeType> optional = config.config.getOptional(SINK_MODE_OPTION);
-            if (!optional.isPresent()) {
-                log.info("set \"sink.mode\" to default, sink.mode=OVERWRITE");
+        Optional<SinkModeType> optional = config.config.getOptional(SINK_MODE_OPTION);
+        if (!optional.isPresent()) {
+            log.info("set \"sink.mode\" to default, sink.mode=OVERWRITE");
+        } else {
+            if (SinkModeType.FIELD.equals(optional.get())) {
+                Optional<String> fieldOption = config.config.getOptional(SINK_MODE_FIELD_OPTION);
+                if (!fieldOption.isPresent() || StringUtils
+                    .isNullOrWhitespaceOnly(fieldOption.get())) {
+                    throw new ValidationException(
+                        "Elasticsearch table with sink.mode.field cannot be bull or blank When sink.mode=Field.");
+                }
             }
-        } catch (Exception e) {
-            throw new ValidationException(
-                "UnSupport option \"sink.mode\", support option is [ merge, upsert].", e);
         }
-        /*kedacom custom end*/
+        //endregion
     }
 
     private static void validate(boolean condition, Supplier<String> message) {
