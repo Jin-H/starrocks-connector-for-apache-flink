@@ -137,12 +137,47 @@
         </repository>
       </distributionManagement>
     </profile>
+
+    <profile>
+      <id>sonar</id>
+      <properties>
+        <sonar.projectKey>flink-component</sonar.projectKey>
+        <sonar.host.url>http://10.165.32.89:6004</sonar.host.url>
+        <sonar.login>75520128891d8fafaa79125a216c0b1bfbb2fc23</sonar.login>
+        <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
+      </properties>
+
+    </profile>
+
   </profiles>
 
 
   <build>
     <pluginManagement>
       <plugins>
+
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>3.1.2</version>
+          <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>8.45.1</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+
+
+        <plugin>
+          <groupId>org.sonarsource.scanner.maven</groupId>
+          <artifactId>sonar-maven-plugin</artifactId>
+          <version>3.9.1.2184</version>
+        </plugin>
+
+
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>flatten-maven-plugin</artifactId>
@@ -176,6 +211,33 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>flatten-maven-plugin</artifactId>
       </plugin>
+
+      <plugin>
+        <groupId>org.sonarsource.scanner.maven</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <configuration>
+          <configLocation>ci/checkstyle.xml</configLocation>
+          <encoding>UTF-8</encoding>
+          <failsOnError>false</failsOnError>
+          <failOnViolation>false</failOnViolation>
+        </configuration>
+        <executions>
+          <execution>
+            <id>checkstyle</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+
     </plugins>
 
   </build>
