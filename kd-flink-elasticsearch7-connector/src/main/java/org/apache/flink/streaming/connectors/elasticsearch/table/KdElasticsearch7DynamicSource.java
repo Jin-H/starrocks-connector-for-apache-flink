@@ -37,22 +37,22 @@ import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
 /**
- * A {@link DynamicTableSource} that describes how to create a {@link Elasticsearch7DynamicSource} from a logical
+ * A {@link DynamicTableSource} that describes how to create a {@link KdElasticsearch7DynamicSource} from a logical
  * description.
  */
 @Internal
-public class Elasticsearch7DynamicSource implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
+public class KdElasticsearch7DynamicSource implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
 	private final DecodingFormat<DeserializationSchema<RowData>> format;
 	private final KdElasticsearchConfiguration config;
-	private final ElasticsearchLookupOptions lookupOptions;
+	private final KdElasticsearchLookupOptions lookupOptions;
 	private TableSchema physicalSchema;
 
-	public Elasticsearch7DynamicSource(
+	public KdElasticsearch7DynamicSource(
 		DecodingFormat<DeserializationSchema<RowData>> format,
         KdElasticsearchConfiguration config,
 		TableSchema physicalSchema,
-		ElasticsearchLookupOptions lookupOptions) {
+		KdElasticsearchLookupOptions lookupOptions) {
 		this.format = format;
 		this.config = config;
 		this.physicalSchema = physicalSchema;
@@ -102,8 +102,7 @@ public class Elasticsearch7DynamicSource implements ScanTableSource, LookupTable
 		if (config.getPathPrefix().isPresent()) {
 			restClientFactory = new Elasticsearch7DynamicSink.DefaultRestClientFactory(config.getPathPrefix().get());
 		} else {
-			restClientFactory = restClientBuilder -> {
-			};
+			restClientFactory = restClientBuilder -> {};
 		}
 
 		Elasticsearch7ApiCallBridge elasticsearch7ApiCallBridge = new Elasticsearch7ApiCallBridge(config.getHosts(), restClientFactory);
@@ -117,7 +116,7 @@ public class Elasticsearch7DynamicSource implements ScanTableSource, LookupTable
 			lookupKeys[i] = physicalSchema.getFieldNames()[innerKeyArr[0]];
 		}
 
-		return TableFunctionProvider.of(new ElasticsearchRowDataLookupFunction(
+		return TableFunctionProvider.of(new KdElasticsearchRowDataLookupFunction(
 			this.format.createRuntimeDecoder(context, physicalSchema.toRowDataType()),
 			lookupOptions,
 			config.getIndex(),
@@ -131,7 +130,7 @@ public class Elasticsearch7DynamicSource implements ScanTableSource, LookupTable
 
 	@Override
 	public DynamicTableSource copy() {
-		return new Elasticsearch7DynamicSource(format, config, physicalSchema, lookupOptions);
+		return new KdElasticsearch7DynamicSource(format, config, physicalSchema, lookupOptions);
 	}
 
 	@Override

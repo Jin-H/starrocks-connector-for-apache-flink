@@ -24,13 +24,13 @@ import java.util.Objects;
 /**
  * Options for the JDBC lookup.
  */
-public class ElasticsearchLookupOptions implements Serializable {
+public class KdElasticsearchLookupOptions implements Serializable {
 
 	private final long cacheMaxSize;
 	private final long cacheExpireMs;
 	private final int maxRetryTimes;
 
-	public ElasticsearchLookupOptions(long cacheMaxSize, long cacheExpireMs, int maxRetryTimes) {
+	public KdElasticsearchLookupOptions(long cacheMaxSize, long cacheExpireMs, int maxRetryTimes) {
 		this.cacheMaxSize = cacheMaxSize;
 		this.cacheExpireMs = cacheExpireMs;
 		this.maxRetryTimes = maxRetryTimes;
@@ -54,8 +54,8 @@ public class ElasticsearchLookupOptions implements Serializable {
 
 	@Override
 	public boolean equals(Object o) {
-		if (o instanceof ElasticsearchLookupOptions) {
-			ElasticsearchLookupOptions options = (ElasticsearchLookupOptions) o;
+		if (o instanceof KdElasticsearchLookupOptions) {
+			KdElasticsearchLookupOptions options = (KdElasticsearchLookupOptions) o;
 			return Objects.equals(cacheMaxSize, options.cacheMaxSize) &&
 				Objects.equals(cacheExpireMs, options.cacheExpireMs) &&
 				Objects.equals(maxRetryTimes, options.maxRetryTimes);
@@ -65,7 +65,7 @@ public class ElasticsearchLookupOptions implements Serializable {
 	}
 
 	/**
-	 * Builder of {@link ElasticsearchLookupOptions}.
+	 * Builder of {@link KdElasticsearchLookupOptions}.
 	 */
 	public static class Builder {
 		private long cacheMaxSize = -1L;
@@ -96,8 +96,8 @@ public class ElasticsearchLookupOptions implements Serializable {
 			return this;
 		}
 
-		public ElasticsearchLookupOptions build() {
-			return new ElasticsearchLookupOptions(cacheMaxSize, cacheExpireMs, maxRetryTimes);
+		public KdElasticsearchLookupOptions build() {
+			return new KdElasticsearchLookupOptions(cacheMaxSize, cacheExpireMs, maxRetryTimes);
 		}
 	}
 }

@@ -39,11 +39,11 @@ import org.apache.flink.table.utils.TableSchemaUtils;
 
 /**
  * A {@link DynamicTableSinkFactory} for discovering {@link Elasticsearch7DynamicSink}. Factory for
- * creating configured instances of {@link Elasticsearch7DynamicSource} and {@link
+ * creating configured instances of {@link KdElasticsearch7DynamicSource} and {@link
  * Elasticsearch7DynamicSink}.
  */
 @Internal
-public class Elasticsearch7DynamicTableFactory implements DynamicTableSourceFactory,
+public class KdElasticsearch7DynamicTableFactory implements DynamicTableSourceFactory,
     DynamicTableSinkFactory {
 
     private static final Set<ConfigOption<?>> requiredOptions = Stream.of(
@@ -71,8 +71,7 @@ public class Elasticsearch7DynamicTableFactory implements DynamicTableSourceFact
         final FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this,
             context);
         final DecodingFormat<DeserializationSchema<RowData>> format = helper.discoverDecodingFormat(
-            DeserializationFormatFactory.class,
-            FORMAT_OPTION);
+            DeserializationFormatFactory.class, FORMAT_OPTION);
         helper.validate();
         Configuration configuration = new Configuration();
         context.getCatalogTable()
@@ -83,11 +82,11 @@ public class Elasticsearch7DynamicTableFactory implements DynamicTableSourceFact
 
         validateSource(config, configuration);
 
-        return new Elasticsearch7DynamicSource(
+        return new KdElasticsearch7DynamicSource(
             format,
             config,
             TableSchemaUtils.getPhysicalSchema(tableSchema),
-            new ElasticsearchLookupOptions.Builder()
+            new KdElasticsearchLookupOptions.Builder()
                 .setCacheExpireMs(config.getCacheExpiredMs().toMillis())
                 .setCacheMaxSize(config.getCacheMaxSize())
                 .setMaxRetryTimes(config.getMaxRetryTimes())
@@ -114,7 +113,7 @@ public class Elasticsearch7DynamicTableFactory implements DynamicTableSourceFact
             context.getClassLoader());
         validateSink(config, configuration);
 
-        return new Elasticsearch7DynamicSink(
+        return new KdElasticsearch7DynamicSink(
             format,
             config,
             TableSchemaUtils.getPhysicalSchema(tableSchema));

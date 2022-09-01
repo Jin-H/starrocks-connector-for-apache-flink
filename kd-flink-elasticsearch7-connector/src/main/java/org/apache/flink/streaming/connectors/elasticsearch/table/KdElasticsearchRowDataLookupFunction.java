@@ -57,9 +57,9 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * A lookup function for ElasticsearchSource.
  */
 @Internal
-public class ElasticsearchRowDataLookupFunction<C extends AutoCloseable> extends TableFunction<RowData> {
+public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> extends TableFunction<RowData> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchRowDataLookupFunction.class);
+	private static final Logger LOG = LoggerFactory.getLogger(KdElasticsearchRowDataLookupFunction.class);
 	private static final long serialVersionUID = 1L;
 
 	private final DeserializationSchema<RowData> deserializationSchema;
@@ -82,9 +82,9 @@ public class ElasticsearchRowDataLookupFunction<C extends AutoCloseable> extends
 	private transient C client;
 	private transient Cache<RowData, List<RowData>> cache;
 
-	public ElasticsearchRowDataLookupFunction(
+	public KdElasticsearchRowDataLookupFunction(
 		DeserializationSchema<RowData> deserializationSchema,
-		ElasticsearchLookupOptions lookupOptions,
+		KdElasticsearchLookupOptions lookupOptions,
 		String index,
 		String type,
 		String[] producedNames,
@@ -194,7 +194,7 @@ public class ElasticsearchRowDataLookupFunction<C extends AutoCloseable> extends
 					throw new RuntimeException("Execution of Elasticsearch search failed.", e);
 				}
 				try {
-					Thread.sleep(1000 * retry);
+					Thread.sleep(1000L * retry);
 				} catch (InterruptedException e1) {
 					LOG.warn("Interrupted while waiting to retry failed elasticsearch search, aborting");
 					throw new RuntimeException(e1);
