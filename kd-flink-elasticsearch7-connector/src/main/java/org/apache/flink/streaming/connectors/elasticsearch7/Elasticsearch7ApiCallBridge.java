@@ -65,10 +65,9 @@ public class Elasticsearch7ApiCallBridge implements ElasticsearchApiCallBridge<R
 	}
 	@Override
 	public RestHighLevelClient createClient(Map<String, String> clientConfig) {
-		RestClientBuilder builder = RestClient.builder(httpHosts.toArray(new HttpHost[httpHosts.size()]));
+		RestClientBuilder builder = RestClient.builder(httpHosts.toArray(new HttpHost[0]));
 		restClientFactory.configureRestClientBuilder(builder);
-		RestHighLevelClient rhlClient = new RestHighLevelClient(builder);
-		return rhlClient;
+        return new RestHighLevelClient(builder);
 	}
 	@Override
 	public BulkProcessor.Builder createBulkProcessorBuilder(RestHighLevelClient client, BulkProcessor.Listener listener) {
@@ -144,10 +143,10 @@ public class Elasticsearch7ApiCallBridge implements ElasticsearchApiCallBridge<R
 	public Tuple2<String, String[]> search(RestHighLevelClient client, SearchRequest searchRequest) throws IOException {
 		SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
 		SearchHit[] searchHits = searchResponse.getHits().getHits();
-		return new Tuple2<String, String[]>(
-			searchResponse.getScrollId(),
-			Stream.of(searchHits).map(SearchHit::getSourceAsString).toArray(String[]::new)
-		);
+		return new Tuple2<>(
+            searchResponse.getScrollId(),
+            Stream.of(searchHits).map(SearchHit::getSourceAsString).toArray(String[]::new)
+        );
 	}
 
 	@Override
