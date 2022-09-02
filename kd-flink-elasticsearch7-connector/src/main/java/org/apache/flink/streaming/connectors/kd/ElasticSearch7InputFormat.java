@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-package org.apache.flink.streaming.connectors.elasticsearch7;
+package org.apache.flink.streaming.connectors.kd;
 
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.streaming.connectors.elasticsearch7.RestClientFactory;
 import org.apache.flink.util.Preconditions;
 
 import org.apache.http.HttpHost;

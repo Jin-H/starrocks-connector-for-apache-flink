@@ -18,29 +18,7 @@
 
 package org.apache.flink.streaming.connectors.elasticsearch.table;
 
-import org.apache.flink.annotation.Internal;
-import org.apache.flink.api.common.serialization.DeserializationSchema;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.streaming.connectors.elasticsearch7.ElasticsearchApiCallBridge;
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.data.util.DataFormatConverters;
-import org.apache.flink.table.data.util.DataFormatConverters.DataFormatConverter;
-import org.apache.flink.table.functions.FunctionContext;
-import org.apache.flink.table.functions.TableFunction;
-import org.apache.flink.table.types.DataType;
-import org.apache.flink.util.Preconditions;
-
-import org.apache.flink.shaded.guava18.com.google.common.cache.Cache;
-import org.apache.flink.shaded.guava18.com.google.common.cache.CacheBuilder;
-
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.TermQueryBuilder;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.apache.flink.util.Preconditions.checkNotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,8 +29,29 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static org.apache.flink.util.Preconditions.checkNotNull;
+import org.apache.flink.annotation.Internal;
+import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.shaded.guava18.com.google.common.cache.Cache;
+import org.apache.flink.shaded.guava18.com.google.common.cache.CacheBuilder;
+import org.apache.flink.streaming.connectors.kd.ElasticsearchApiCallBridge;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.util.DataFormatConverters;
+import org.apache.flink.table.data.util.DataFormatConverters.DataFormatConverter;
+import org.apache.flink.table.functions.FunctionContext;
+import org.apache.flink.table.functions.TableFunction;
+import org.apache.flink.table.types.DataType;
+import org.apache.flink.util.Preconditions;
+import org.apache.flink.util.StringUtils;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.common.Strings;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A lookup function for ElasticsearchSource.
@@ -161,31 +160,60 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
             }
         }
 
-        BoolQueryBuilder lookupCondition = new BoolQueryBuilder();
-        for (int i = 0; i < lookupKeys.length; i++) {
-            lookupCondition.must(
-                new TermQueryBuilder(lookupKeys[i], converters[i].toExternal(keys[i])));
-        }
-        searchSourceBuilder.query(lookupCondition);
-        searchRequest.source(searchSourceBuilder);
+        boolean queryWithId = false;
 
-        Tuple2<String, String[]> searchResponse = null;
+        if (lookupKeys != null && lookupKeys.length == 1 && "_id".equals(lookupKeys[0])) {
+            queryWithId = true;
+        }
+        if (!queryWithId) {
+            BoolQueryBuilder lookupCondition = new BoolQueryBuilder();
+            for (int i = 0; i < lookupKeys.length; i++) {
+                Object value = converters[i].toExternal(keys[i]);
+                lookupCondition.must(new TermQueryBuilder(lookupKeys[i], value));
+            }
+            searchSourceBuilder.query(lookupCondition);
+            searchRequest.source(searchSourceBuilder);
+        }
+
+        Tuple2<String, String[]> searchResponse;
 
         for (int retry = 1; retry <= maxRetryTimes; retry++) {
             try {
-                searchResponse = callBridge.search(client, searchRequest);
+                if (queryWithId) {
+                    long l = System.currentTimeMillis();
+                    searchResponse = callBridge.get(client,
+                        new GetRequest(index, String.valueOf(keys[0])));
+                    long cost = System.currentTimeMillis() - l;
+                    if (cost > 100) {
+                        LOG.info("查询es耗时大于50ms，查询【{}】耗时：{}ms", keys[0], cost);
+                    }
+                } else {
+                    searchResponse = callBridge.search(client, searchRequest);
+                }
                 if (searchResponse.f1.length > 0) {
                     String[] result = searchResponse.f1;
                     // if cache disabled
                     if (cache == null) {
                         for (String s : result) {
+                            if (StringUtils.isNullOrWhitespaceOnly(s)) {
+                                continue;
+                            }
                             RowData row = parseSearchHit(s);
+                            if (Objects.isNull(row)) {
+                                continue;
+                            }
                             collect(row);
                         }
                     } else { // if cache enabled
                         ArrayList<RowData> rows = new ArrayList<>();
                         for (String s : result) {
+                            if (StringUtils.isNullOrWhitespaceOnly(s)) {
+                                continue;
+                            }
                             RowData row = parseSearchHit(s);
+                            if (Objects.isNull(row)) {
+                                continue;
+                            }
                             collect(row);
                             rows.add(row);
                         }
@@ -210,6 +238,9 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
     }
 
     private RowData parseSearchHit(String hit) {
+        if (StringUtils.isNullOrWhitespaceOnly(hit)) {
+            return null;
+        }
         RowData row = null;
         try {
             row = deserializationSchema.deserialize(hit.getBytes());

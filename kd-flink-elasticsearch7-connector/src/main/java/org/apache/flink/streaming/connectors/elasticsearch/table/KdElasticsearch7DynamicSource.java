@@ -20,8 +20,8 @@ package org.apache.flink.streaming.connectors.elasticsearch.table;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
-import org.apache.flink.streaming.connectors.elasticsearch7.ElasticSearch7InputFormat;
-import org.apache.flink.streaming.connectors.elasticsearch7.Elasticsearch7ApiCallBridge;
+import org.apache.flink.streaming.connectors.kd.ElasticSearch7InputFormat;
+import org.apache.flink.streaming.connectors.kd.Elasticsearch7ApiCallBridge;
 import org.apache.flink.streaming.connectors.elasticsearch7.RestClientFactory;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;

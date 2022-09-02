@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.streaming.connectors.elasticsearch7;
+package org.apache.flink.streaming.connectors.kd;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.core.io.LocatableInputSplit;

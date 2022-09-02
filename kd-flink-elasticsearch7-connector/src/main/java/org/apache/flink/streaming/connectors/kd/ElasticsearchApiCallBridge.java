@@ -1,4 +1,4 @@
-package org.apache.flink.streaming.connectors.elasticsearch7;
+package org.apache.flink.streaming.connectors.kd;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -11,6 +11,7 @@ import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkBase
 import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkProcessor;
+import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchScrollRequest;
 
@@ -21,10 +22,9 @@ import org.elasticsearch.action.search.SearchScrollRequest;
  * interface.
  *
  * <p>Implementations are allowed to be stateful. For example, for Elasticsearch 1.x, since
- * connecting via an embedded node
- * is allowed, the call bridge will hold reference to the created embedded node. Each instance of
- * the sink will hold exactly one instance of the call bridge, and state cleanup is performed when
- * the sink is closed.
+ * connecting via an embedded node is allowed, the call bridge will hold reference to the created
+ * embedded node. Each instance of the sink will hold exactly one instance of the call bridge, and
+ * state cleanup is performed when the sink is closed.
  *
  * @param <C> The Elasticsearch client, that implements {@link AutoCloseable}.
  */
@@ -53,6 +53,8 @@ public interface ElasticsearchApiCallBridge<C extends AutoCloseable> extends Ser
         int minNumSplits);
 
     Tuple2<String, String[]> search(C client, SearchRequest searchRequest) throws IOException;
+
+    Tuple2<String, String[]> get(C client, GetRequest getRequest) throws IOException;
 
     Tuple2<String, String[]> scroll(C client, SearchScrollRequest searchScrollRequest)
         throws IOException;
@@ -86,8 +88,8 @@ public interface ElasticsearchApiCallBridge<C extends AutoCloseable> extends Ser
      * Verify the client connection by making a test request/ping to the Elasticsearch cluster.
      *
      * <p>Called by {@link ElasticsearchSinkBase#open(org.apache.flink.configuration.Configuration)}
-     * after creating the client. This makes sure the underlying
-     * client is closed if the connection is not successful and preventing thread leak.
+     * after creating the client. This makes sure the underlying client is closed if the connection
+     * is not successful and preventing thread leak.
      *
      * @param client the Elasticsearch client.
      */
