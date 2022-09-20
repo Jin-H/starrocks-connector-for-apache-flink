@@ -19,11 +19,11 @@
 package org.apache.flink.streaming.connectors.elasticsearch.table;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.function.Function;
 import javax.annotation.Nullable;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.serialization.SerializationSchema;
@@ -56,6 +56,8 @@ class KdRowElasticsearch7SinkFunction implements ElasticsearchSinkFunction<RowDa
     private final String sinkModeField; //kedacom customized
     private final String mergeFlag = "1";
 
+    private final Integer retryOnConflict;
+
     public KdRowElasticsearch7SinkFunction(
         IndexGenerator indexGenerator,
         @Nullable String docType, // this is deprecated in es 7+
@@ -64,7 +66,8 @@ class KdRowElasticsearch7SinkFunction implements ElasticsearchSinkFunction<RowDa
         RequestFactory requestFactory,
         Function<RowData, String> createKey,
         KdElasticsearch7Options.SinkModeType sinkMode,
-        String sinkModeField) {
+        String sinkModeField,
+        Integer retryOnConflict) {
         this.indexGenerator = Preconditions.checkNotNull(indexGenerator);
         this.docType = docType;
         this.serializationSchema = Preconditions.checkNotNull(serializationSchema);
@@ -73,6 +76,7 @@ class KdRowElasticsearch7SinkFunction implements ElasticsearchSinkFunction<RowDa
         this.createKey = Preconditions.checkNotNull(createKey);
         this.sinkMode = sinkMode;
         this.sinkModeField = sinkModeField;
+        this.retryOnConflict = retryOnConflict;
     }
 
     @Override
@@ -111,7 +115,8 @@ class KdRowElasticsearch7SinkFunction implements ElasticsearchSinkFunction<RowDa
         //当未启用Field模式 或 数据中的flag为true时，
         if (field == null || mergeFlag.equals(jsonObject.get(field))) {
             jsonObject.remove(field);//移除flag
-            return JSON.parseObject(new String(b, StandardCharsets.UTF_8)).toJSONString().getBytes();
+            return JSON.parseObject(new String(b, StandardCharsets.UTF_8)).toJSONString()
+                .getBytes();
         }
         return b;
     }
@@ -123,6 +128,7 @@ class KdRowElasticsearch7SinkFunction implements ElasticsearchSinkFunction<RowDa
             final UpdateRequest updateRequest =
                 requestFactory.createUpdateRequest(
                     indexGenerator.generate(row), docType, key, contentType, document);
+            retryOnConflict(updateRequest);
             indexer.add(updateRequest);
         } else {
             final IndexRequest indexRequest =
@@ -145,12 +151,19 @@ class KdRowElasticsearch7SinkFunction implements ElasticsearchSinkFunction<RowDa
             final UpdateRequest updateRequest =
                 requestFactory.createUpdateRequest(
                     indexGenerator.generate(row), docType, key, contentType, document);
+            retryOnConflict(updateRequest);
             indexer.add(updateRequest);
         } else {
             final IndexRequest indexRequest =
                 requestFactory.createIndexRequest(
                     indexGenerator.generate(row), docType, key, contentType, document);
             indexer.add(indexRequest);
+        }
+    }
+
+    private void retryOnConflict(UpdateRequest updateRequest) {
+        if (retryOnConflict != null && retryOnConflict > 0) {
+            updateRequest.retryOnConflict(retryOnConflict);
         }
     }
 
@@ -161,6 +174,7 @@ class KdRowElasticsearch7SinkFunction implements ElasticsearchSinkFunction<RowDa
             final UpdateRequest updateRequest =
                 requestFactory.createUpdateRequest(
                     indexGenerator.generate(row), docType, key, contentType, document);
+            retryOnConflict(updateRequest);
             indexer.add(updateRequest);
         } else {
             final IndexRequest indexRequest =

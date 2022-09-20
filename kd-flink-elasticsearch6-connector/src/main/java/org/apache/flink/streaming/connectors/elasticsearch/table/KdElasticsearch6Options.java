@@ -42,7 +42,15 @@ public class KdElasticsearch6Options {
         ConfigOptions.key("sink.mode.field")
             .stringType()
             .noDefaultValue()
-            .withDescription("Elasticsearch Sink Mode Field , Shift Merge&Overwrite By doc's Field , customized by Kedacom.");
+            .withDescription(
+                "Elasticsearch Sink Mode Field , Shift Merge&Overwrite By doc's Field , customized by Kedacom.");
+
+    public static final ConfigOption<Integer> RETRY_ON_CONFLICT = ConfigOptions
+        .key("retry-on-conflict")
+        .intType()
+        .defaultValue(0)
+        .withDescription("retry on es version conflict.");
+
 
     private KdElasticsearch6Options() {
     }
