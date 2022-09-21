@@ -84,7 +84,8 @@ public class KdElasticsearch7DynamicTableFactory implements DynamicTableSourceFa
         FORMAT_OPTION,
         LOOKUP_CACHE_MAX_ROWS,
         LOOKUP_CACHE_TTL,
-        LOOKUP_MAX_RETRIES
+        LOOKUP_MAX_RETRIES,
+        RETRY_ON_CONFLICT
     ).collect(Collectors.toSet());
 
     @Override
@@ -201,7 +202,8 @@ public class KdElasticsearch7DynamicTableFactory implements DynamicTableSourceFa
         //endregion
     }
 
-    private void validateSource(KdElasticsearchConfiguration config, Configuration originalConfiguration) {
+    private void validateSource(KdElasticsearchConfiguration config,
+        Configuration originalConfiguration) {
         config.getHosts(); // validate hosts
         validate(
             config.getIndex().length() >= 1,

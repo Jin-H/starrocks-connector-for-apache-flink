@@ -18,6 +18,7 @@
 
 package org.apache.flink.streaming.connectors.elasticsearch.table;
 
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.RETRY_ON_CONFLICT;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.SINK_MODE_FIELD_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.SINK_MODE_OPTION;
 
@@ -130,7 +131,8 @@ final class KdElasticsearch6DynamicSink implements DynamicTableSink {
                     KeyExtractor.createKeyExtractor(schema, config.getKeyDelimiter()),
                     config.config.getOptional(SINK_MODE_OPTION)
                         .orElse(KdElasticsearch6Options.SinkModeType.OVERWRITE),
-                    config.config.getOptional(SINK_MODE_FIELD_OPTION).orElse(null)
+                    config.config.getOptional(SINK_MODE_FIELD_OPTION).orElse(null),
+                    config.config.getOptional(RETRY_ON_CONFLICT).orElse(null)
                 );
 
             final ElasticsearchSink.Builder<RowData> builder =
