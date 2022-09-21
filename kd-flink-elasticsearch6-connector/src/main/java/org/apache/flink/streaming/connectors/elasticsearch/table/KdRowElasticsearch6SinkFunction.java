@@ -61,6 +61,8 @@ class KdRowElasticsearch6SinkFunction implements ElasticsearchSinkFunction<RowDa
     private final String sinkModeField; //kedacom customized
     private final String mergeFlag = "1";
 
+    private final Integer retryOnConflict;
+
     public KdRowElasticsearch6SinkFunction(
         IndexGenerator indexGenerator,
         @Nullable String docType, // this is deprecated in es 7+
@@ -69,7 +71,8 @@ class KdRowElasticsearch6SinkFunction implements ElasticsearchSinkFunction<RowDa
         RequestFactory requestFactory,
         Function<RowData, String> createKey,
         KdElasticsearch6Options.SinkModeType sinkMode,
-        String sinkModeField) {
+        String sinkModeField,
+        Integer retryOnConflict) {
         this.indexGenerator = Preconditions.checkNotNull(indexGenerator);
         this.docType = docType;
         this.serializationSchema = Preconditions.checkNotNull(serializationSchema);
@@ -78,6 +81,7 @@ class KdRowElasticsearch6SinkFunction implements ElasticsearchSinkFunction<RowDa
         this.createKey = Preconditions.checkNotNull(createKey);
         this.sinkMode = sinkMode;
         this.sinkModeField = sinkModeField;
+        this.retryOnConflict = retryOnConflict;
     }
 
     @Override
@@ -128,6 +132,7 @@ class KdRowElasticsearch6SinkFunction implements ElasticsearchSinkFunction<RowDa
             final UpdateRequest updateRequest =
                 requestFactory.createUpdateRequest(
                     indexGenerator.generate(row), docType, key, contentType, document);
+            retryOnConflict(updateRequest);
             indexer.add(updateRequest);
         } else {
             final IndexRequest indexRequest =
@@ -150,6 +155,7 @@ class KdRowElasticsearch6SinkFunction implements ElasticsearchSinkFunction<RowDa
             final UpdateRequest updateRequest =
                 requestFactory.createUpdateRequest(
                     indexGenerator.generate(row), docType, key, contentType, document);
+            retryOnConflict(updateRequest);
             indexer.add(updateRequest);
         } else {
             final IndexRequest indexRequest =
@@ -166,6 +172,7 @@ class KdRowElasticsearch6SinkFunction implements ElasticsearchSinkFunction<RowDa
             final UpdateRequest updateRequest =
                 requestFactory.createUpdateRequest(
                     indexGenerator.generate(row), docType, key, contentType, document);
+            retryOnConflict(updateRequest);
             indexer.add(updateRequest);
         } else {
             final IndexRequest indexRequest =
@@ -181,6 +188,12 @@ class KdRowElasticsearch6SinkFunction implements ElasticsearchSinkFunction<RowDa
         final DeleteRequest deleteRequest =
             requestFactory.createDeleteRequest(indexGenerator.generate(row), docType, key);
         indexer.add(deleteRequest);
+    }
+
+    private void retryOnConflict(UpdateRequest updateRequest) {
+        if (retryOnConflict != null && retryOnConflict > 0) {
+            updateRequest.retryOnConflict(retryOnConflict);
+        }
     }
 
     @Override

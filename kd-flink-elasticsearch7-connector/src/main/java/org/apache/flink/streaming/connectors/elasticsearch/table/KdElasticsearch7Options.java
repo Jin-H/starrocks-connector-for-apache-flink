@@ -84,6 +84,13 @@ public class KdElasticsearch7Options {
         .defaultValue(3)
         .withDescription("the max retry times if lookup database failed.");
 
+    public static final ConfigOption<Integer> RETRY_ON_CONFLICT = ConfigOptions
+        .key("retry-on-conflict")
+        .intType()
+        .defaultValue(0)
+        .withDescription("retry on es version conflict.");
+
+
     private KdElasticsearch7Options() {
     }
 }
