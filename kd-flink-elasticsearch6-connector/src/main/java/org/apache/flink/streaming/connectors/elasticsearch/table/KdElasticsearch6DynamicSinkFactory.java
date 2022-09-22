@@ -35,8 +35,7 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.KEY_DELIMITER_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.PASSWORD_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.USERNAME_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.SINK_MODE_FIELD_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.SINK_MODE_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.*;
 
 import java.util.Optional;
 import java.util.Set;
@@ -87,7 +86,8 @@ public class KdElasticsearch6DynamicSinkFactory implements DynamicTableSinkFacto
             CONNECTION_PATH_PREFIX,
             FORMAT_OPTION,
             PASSWORD_OPTION,
-            USERNAME_OPTION)
+            USERNAME_OPTION,
+                RETRY_ON_CONFLICT)
             .collect(Collectors.toSet());
 
     @Override
