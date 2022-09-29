@@ -14,11 +14,20 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.HOSTS_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.INDEX_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.KEY_DELIMITER_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.*;
-
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.PASSWORD_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.USERNAME_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.*;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.CACHE_TYPE;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.IGNORE_QUERY_ELASTICSEARCH;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.LOOKUP_CACHE_MAX_ROWS;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.LOOKUP_CACHE_TTL;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.LOOKUP_MAX_RETRIES;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.PARTIAL_CACHE_CACHE_MISSING_KEY;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.RETRY_ON_CONFLICT;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SCROLL_MAX_SIZE_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SCROLL_TIMEOUT_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SINK_MODE_FIELD_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SINK_MODE_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SinkModeType;
 
 import java.util.Optional;
 import java.util.Set;
@@ -32,6 +41,8 @@ import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.LookupCacheType;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.connector.format.DecodingFormat;
@@ -85,7 +96,10 @@ public class KdElasticsearch7DynamicTableFactory implements DynamicTableSourceFa
         LOOKUP_CACHE_MAX_ROWS,
         LOOKUP_CACHE_TTL,
         LOOKUP_MAX_RETRIES,
-        RETRY_ON_CONFLICT
+        RETRY_ON_CONFLICT,
+        PARTIAL_CACHE_CACHE_MISSING_KEY,
+        CACHE_TYPE,
+        IGNORE_QUERY_ELASTICSEARCH
     ).collect(Collectors.toSet());
 
     @Override
@@ -113,8 +127,16 @@ public class KdElasticsearch7DynamicTableFactory implements DynamicTableSourceFa
                 .setCacheExpireMs(config.getCacheExpiredMs().toMillis())
                 .setCacheMaxSize(config.getCacheMaxSize())
                 .setMaxRetryTimes(config.getMaxRetryTimes())
-                .build()
+                .build(),
+            cacheMissingKey(helper.getOptions()),
+            helper.getOptions().get(IGNORE_QUERY_ELASTICSEARCH)
         );
+    }
+
+    private boolean cacheMissingKey(ReadableConfig tableOptions) {
+        return tableOptions
+            .get(CACHE_TYPE)
+            .equals(LookupCacheType.PARTIAL) && tableOptions.get(PARTIAL_CACHE_CACHE_MISSING_KEY);
     }
 
     @Override

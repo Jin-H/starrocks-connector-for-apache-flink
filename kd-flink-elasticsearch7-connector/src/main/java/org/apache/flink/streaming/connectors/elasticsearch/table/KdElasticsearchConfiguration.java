@@ -17,19 +17,7 @@
  */
 package org.apache.flink.streaming.connectors.elasticsearch.table;
 
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLASH_MAX_SIZE_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_BACKOFF_DELAY_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_BACKOFF_TYPE_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_INTERVAL_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_MAX_ACTIONS_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.CONNECTION_PATH_PREFIX;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.DOCUMENT_TYPE_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.FAILURE_HANDLER_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.FLUSH_ON_CHECKPOINT_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.HOSTS_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.INDEX_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.KEY_DELIMITER_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.LOOKUP_CACHE_MAX_ROWS;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.LOOKUP_CACHE_TTL;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.LOOKUP_MAX_RETRIES;
@@ -38,18 +26,11 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasti
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.streaming.connectors.elasticsearch.ActionRequestFailureHandler;
-import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkBase;
-import org.apache.flink.streaming.connectors.elasticsearch.util.IgnoringFailureHandler;
-import org.apache.flink.streaming.connectors.elasticsearch.util.NoOpFailureHandler;
-import org.apache.flink.streaming.connectors.elasticsearch.util.RetryRejectedExecutionFailureHandler;
 import org.apache.flink.table.api.ValidationException;
-import org.apache.flink.util.InstantiationUtil;
 import org.apache.http.HttpHost;
 
 /**
@@ -61,7 +42,8 @@ public class KdElasticsearchConfiguration extends ElasticsearchConfiguration {
     public List<HttpHost> getHosts() {
         return config.get(HOSTS_OPTION).stream()
             .map(KdElasticsearchConfiguration::validateAndParseHostsString)
-            .collect(Collectors.toList());    }
+            .collect(Collectors.toList());
+    }
 
     private static HttpHost validateAndParseHostsString(String host) {
         try {
@@ -87,9 +69,6 @@ public class KdElasticsearchConfiguration extends ElasticsearchConfiguration {
     KdElasticsearchConfiguration(ReadableConfig config, ClassLoader classLoader) {
         super(config, classLoader);
     }
-
-
-
 
 
     public Optional<Integer> getScrollMaxSize() {
