@@ -236,8 +236,7 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
                         }
                     }
                 }
-                if (cacheMissingKey){
-                    LOG.warn("未查询到es数据，request-info ： {}",queryWithId ? String.valueOf(keys[0]) : searchRequest.toString());
+                if (cacheMissingKey) {
                     cache.put(keyRow, Lists.newLinkedList());
                 }
                 break;
