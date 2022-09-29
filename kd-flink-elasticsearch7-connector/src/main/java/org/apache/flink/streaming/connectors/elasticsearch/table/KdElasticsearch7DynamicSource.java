@@ -20,9 +20,9 @@ package org.apache.flink.streaming.connectors.elasticsearch.table;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.streaming.connectors.elasticsearch7.RestClientFactory;
 import org.apache.flink.streaming.connectors.kd.ElasticSearch7InputFormat;
 import org.apache.flink.streaming.connectors.kd.Elasticsearch7ApiCallBridge;
-import org.apache.flink.streaming.connectors.elasticsearch7.RestClientFactory;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.format.DecodingFormat;
@@ -49,15 +49,22 @@ public class KdElasticsearch7DynamicSource implements ScanTableSource, LookupTab
     private final KdElasticsearchLookupOptions lookupOptions;
     private TableSchema physicalSchema;
 
+    private final boolean cacheMissingKey;
+
+    private final boolean ignoreQueryEs;
+
     public KdElasticsearch7DynamicSource(
         DecodingFormat<DeserializationSchema<RowData>> format,
         KdElasticsearchConfiguration config,
         TableSchema physicalSchema,
-        KdElasticsearchLookupOptions lookupOptions) {
+        KdElasticsearchLookupOptions lookupOptions,
+        boolean cacheMissingKey, boolean ignoreQueryEs) {
         this.format = format;
         this.config = config;
         this.physicalSchema = physicalSchema;
         this.lookupOptions = lookupOptions;
+        this.cacheMissingKey = cacheMissingKey;
+        this.ignoreQueryEs = ignoreQueryEs;
     }
 
     @Override
@@ -99,8 +106,7 @@ public class KdElasticsearch7DynamicSource implements ScanTableSource, LookupTab
 
         return InputFormatProvider.of(
             esInputFormatBuilder.build()
-        );
-    }
+        );    }
 
     @Override
     public LookupRuntimeProvider getLookupRuntimeProvider(LookupContext context) {
@@ -133,13 +139,14 @@ public class KdElasticsearch7DynamicSource implements ScanTableSource, LookupTab
             physicalSchema.getFieldNames(),
             physicalSchema.getFieldDataTypes(),
             lookupKeys,
-            elasticsearch7ApiCallBridge)
+            elasticsearch7ApiCallBridge, cacheMissingKey, ignoreQueryEs)
         );
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new KdElasticsearch7DynamicSource(format, config, physicalSchema, lookupOptions);
+        return new KdElasticsearch7DynamicSource(format, config, physicalSchema, lookupOptions,
+            cacheMissingKey, ignoreQueryEs);
     }
 
     @Override

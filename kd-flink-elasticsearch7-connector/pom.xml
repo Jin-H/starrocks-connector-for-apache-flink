@@ -208,6 +208,31 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <!-- here the phase you need -->
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <copy todir="${basedir}/target/connector"
+                  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
+                <move
+                  file="${basedir}/target/connector/${project.artifactId}-${project.version}.jar"
+                  tofile="${basedir}/target/connector/${project.artifactId}-1.0.2-1.13-RELEASE.jar"/>
+
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
   </build>
 

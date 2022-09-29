@@ -18,9 +18,12 @@
 
 package org.apache.flink.streaming.connectors.elasticsearch.table;
 
-import java.time.Duration;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
+import org.apache.flink.configuration.description.Description;
+import java.time.Duration;
+
+import static org.apache.flink.configuration.description.TextElement.code;
 
 /**
  * Options for {@link org.apache.flink.table.factories.DynamicTableSinkFactory} for Elasticsearch.
@@ -90,6 +93,54 @@ public class KdElasticsearch7Options {
         .defaultValue(0)
         .withDescription("retry on es version conflict.");
 
+    public static final ConfigOption<Boolean> PARTIAL_CACHE_CACHE_MISSING_KEY =
+        ConfigOptions.key("lookup.partial-cache.cache-missing-key")
+            .booleanType()
+            .defaultValue(true)
+            .withDescription(
+                "Whether to store an empty value into the cache if the lookup key doesn't match any rows in the table");
+
+    public static final ConfigOption<Duration> PARTIAL_CACHE_EXPIRE_AFTER_ACCESS =
+        ConfigOptions.key("lookup.partial-cache.expire-after-access")
+            .durationType()
+            .noDefaultValue()
+            .withDescription("Duration to expire an entry in the cache after accessing");
+
+    public static final ConfigOption<Duration> PARTIAL_CACHE_EXPIRE_AFTER_WRITE =
+        ConfigOptions.key("lookup.partial-cache.expire-after-write")
+            .durationType()
+            .noDefaultValue()
+            .withDescription("Duration to expire an entry in the cache after writing");
+
+    public static final ConfigOption<LookupCacheType> CACHE_TYPE =
+        ConfigOptions.key("lookup.cache")
+            .enumType(LookupCacheType.class)
+            .defaultValue(LookupCacheType.NONE)
+            .withDescription(
+                Description.builder()
+                    .text(
+                        "The caching strategy for this lookup table, including %s, %s and %s",
+                        code(LookupCacheType.NONE.toString()),
+                        code(LookupCacheType.PARTIAL.toString()),
+                        code(LookupCacheType.FULL.toString()))
+                    .build());
+
+    public static final ConfigOption<Boolean> IGNORE_QUERY_ELASTICSEARCH =
+        ConfigOptions.key("lookup.ignore-query-failure")
+            .booleanType()
+            .defaultValue(false)
+            .withDescription(
+                "Whether to exception where query es");
+
+
+    /**
+     * Types of the lookup cache.
+     */
+    public enum LookupCacheType {
+        NONE,
+        PARTIAL,
+        FULL
+    }
 
     private KdElasticsearch7Options() {
     }

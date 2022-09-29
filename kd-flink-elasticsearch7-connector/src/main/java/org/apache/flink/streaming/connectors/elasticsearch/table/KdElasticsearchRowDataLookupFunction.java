@@ -84,6 +84,10 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
     private transient C client;
     private transient Cache<RowData, List<RowData>> cache;
 
+    private final boolean cacheMissingKey;
+
+    private final boolean ignoreQueryEs;
+
     public KdElasticsearchRowDataLookupFunction(
         DeserializationSchema<RowData> deserializationSchema,
         KdElasticsearchLookupOptions lookupOptions,
@@ -92,7 +96,8 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
         String[] producedNames,
         DataType[] producedTypes,
         String[] lookupKeys,
-        ElasticsearchApiCallBridge<C> callBridge) {
+        ElasticsearchApiCallBridge<C> callBridge,
+        boolean cacheMissingKey, boolean ignoreQueryEs) {
 
         checkNotNull(deserializationSchema, "No DeserializationSchema supplied.");
         checkNotNull(lookupOptions, "No ElasticsearchLookupOptions supplied.");
@@ -111,6 +116,8 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
         this.producedNames = producedNames;
         this.lookupKeys = lookupKeys;
         this.converters = new DataFormatConverter[lookupKeys.length];
+        this.cacheMissingKey = cacheMissingKey;
+        this.ignoreQueryEs = ignoreQueryEs;
         Map<String, Integer> nameToIndex = IntStream.range(0, producedNames.length).boxed().collect(
             Collectors.toMap(i -> producedNames[i], i -> i));
         for (int i = 0; i < lookupKeys.length; i++) {
@@ -124,7 +131,7 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
     }
 
     @Override
-    public void open(FunctionContext context) throws Exception {
+    public void open(FunctionContext context) {
         this.cache = cacheMaxSize == -1 || cacheExpireMs == -1 ? null : CacheBuilder.newBuilder()
             .expireAfterWrite(cacheExpireMs, TimeUnit.MILLISECONDS)
             .maximumSize(cacheMaxSize)
@@ -160,15 +167,17 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
             }
         }
 
-        boolean queryWithId = false;
+        boolean queryWithId =
+            lookupKeys != null && lookupKeys.length == 1 && "_id".equals(lookupKeys[0]);
 
-        if (lookupKeys != null && lookupKeys.length == 1 && "_id".equals(lookupKeys[0])) {
-            queryWithId = true;
-        }
         if (!queryWithId) {
             BoolQueryBuilder lookupCondition = new BoolQueryBuilder();
             for (int i = 0; i < lookupKeys.length; i++) {
                 Object value = converters[i].toExternal(keys[i]);
+                if (StringUtils.isNullOrWhitespaceOnly(value.toString())) {
+                    LOG.warn("字段【{}】的值为空", lookupKeys[i]);
+                    return;
+                }
                 lookupCondition.must(new TermQueryBuilder(lookupKeys[i], value));
             }
             searchSourceBuilder.query(lookupCondition);
@@ -180,12 +189,16 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
         for (int retry = 1; retry <= maxRetryTimes; retry++) {
             try {
                 if (queryWithId) {
+                    if (StringUtils.isNullOrWhitespaceOnly(String.valueOf(keys[0]))) {
+                        LOG.warn("_id的值为空");
+                        return;
+                    }
                     long l = System.currentTimeMillis();
                     searchResponse = callBridge.get(client,
                         new GetRequest(index, String.valueOf(keys[0])));
                     long cost = System.currentTimeMillis() - l;
                     if (cost > 100) {
-                        LOG.info("查询es耗时大于50ms，查询【{}】耗时：{}ms", keys[0], cost);
+                        LOG.info("查询es耗时大于100ms，查询【{}】耗时：{}ms", keys[0], cost);
                     }
                 } else {
                     searchResponse = callBridge.search(client, searchRequest);
@@ -217,12 +230,19 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
                             collect(row);
                             rows.add(row);
                         }
-                        cache.put(keyRow, rows);
+                        if (cacheMissingKey || !rows.isEmpty()) {
+                            cache.put(keyRow, rows);
+                        }
                     }
                 }
                 break;
-            } catch (IOException e) {
-                LOG.error(String.format("Elasticsearch search error, retry times = %d", retry), e);
+            } catch (Exception e) {
+                LOG.error(String.format(
+                    "Elasticsearch search error, retry times = %d, ignore-query-failure : %s",
+                    retry, ignoreQueryEs), e);
+                if (ignoreQueryEs) {
+                    continue;
+                }
                 if (retry >= maxRetryTimes) {
                     throw new RuntimeException("Execution of Elasticsearch search failed.", e);
                 }
