@@ -34,6 +34,7 @@ import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.shaded.guava18.com.google.common.cache.Cache;
 import org.apache.flink.shaded.guava18.com.google.common.cache.CacheBuilder;
+import org.apache.flink.shaded.guava18.com.google.common.collect.Lists;
 import org.apache.flink.streaming.connectors.kd.ElasticsearchApiCallBridge;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -234,6 +235,9 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
                             cache.put(keyRow, rows);
                         }
                     }
+                }
+                if (cacheMissingKey) {
+                    cache.put(keyRow, Lists.newLinkedList());
                 }
                 break;
             } catch (Exception e) {
