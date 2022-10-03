@@ -203,9 +203,13 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
                         LOG.info("查询es耗时大于100ms，查询【{}】耗时：{}ms", keys[0], cost);
                     }
                 } else {
+                    long l = System.currentTimeMillis();
                     searchResponse = callBridge.search(client, searchRequest);
-                    LOG.info("请求信息：{}, 结果：{}", searchRequest.toString(),
-                        JSON.toJSONString(searchResponse.f1));
+                    long cost = System.currentTimeMillis() - l;
+                    if (cost > 100) {
+                        LOG.info("本次查询es耗时{}ms大于100ms，请求信息：{}, 结果：{}", cost,
+                            searchRequest.toString(), JSON.toJSONString(searchResponse.f1));
+                    }
                 }
                 if (searchResponse.f1.length > 0) {
                     String[] result = searchResponse.f1;
