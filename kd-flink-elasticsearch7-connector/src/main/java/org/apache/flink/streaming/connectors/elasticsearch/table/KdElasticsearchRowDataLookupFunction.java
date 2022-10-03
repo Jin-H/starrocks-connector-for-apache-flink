@@ -20,6 +20,7 @@ package org.apache.flink.streaming.connectors.elasticsearch.table;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
+import com.alibaba.fastjson.JSON;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -178,7 +179,6 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
                 if (Objects.isNull(value) || StringUtils.isNullOrWhitespaceOnly(value.toString())) {
                     LOG.info("字段【{}】的值为空", lookupKeys[i]);
                 } else {
-                    LOG.info("当前字段名称：{}, 字段值：{}", lookupKeys[i], value);
                     lookupCondition.must(new TermQueryBuilder(lookupKeys[i], value));
                 }
             }
@@ -204,6 +204,8 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
                     }
                 } else {
                     searchResponse = callBridge.search(client, searchRequest);
+                    LOG.info("请求信息：{}, 结果：{}", searchRequest.toString(),
+                        JSON.toJSONString(searchResponse.f1));
                 }
                 if (searchResponse.f1.length > 0) {
                     String[] result = searchResponse.f1;
