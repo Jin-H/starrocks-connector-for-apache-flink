@@ -175,7 +175,7 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
             BoolQueryBuilder lookupCondition = new BoolQueryBuilder();
             for (int i = 0; i < lookupKeys.length; i++) {
                 Object value = converters[i].toExternal(keys[i]);
-                if (StringUtils.isNullOrWhitespaceOnly(value.toString())) {
+                if (Objects.isNull(value) || StringUtils.isNullOrWhitespaceOnly(value.toString())) {
                     LOG.info("字段【{}】的值为空", lookupKeys[i]);
                 } else {
                     LOG.info("当前字段名称：{}, 字段值：{}", lookupKeys[i], value);
@@ -232,9 +232,7 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
                             collect(row);
                             rows.add(row);
                         }
-                        if (cacheMissingKey || !rows.isEmpty()) {
-                            cache.put(keyRow, rows);
-                        }
+                        cache.put(keyRow, rows);
                     }
                 }
                 if (cacheMissingKey) {
