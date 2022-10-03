@@ -176,10 +176,11 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
             for (int i = 0; i < lookupKeys.length; i++) {
                 Object value = converters[i].toExternal(keys[i]);
                 if (StringUtils.isNullOrWhitespaceOnly(value.toString())) {
-                    LOG.warn("字段【{}】的值为空", lookupKeys[i]);
-                    return;
+                    LOG.info("字段【{}】的值为空", lookupKeys[i]);
+                } else {
+                    LOG.info("当前字段名称：{}, 字段值：{}", lookupKeys[i], value);
+                    lookupCondition.must(new TermQueryBuilder(lookupKeys[i], value));
                 }
-                lookupCondition.must(new TermQueryBuilder(lookupKeys[i], value));
             }
             searchSourceBuilder.query(lookupCondition);
             searchRequest.source(searchSourceBuilder);
