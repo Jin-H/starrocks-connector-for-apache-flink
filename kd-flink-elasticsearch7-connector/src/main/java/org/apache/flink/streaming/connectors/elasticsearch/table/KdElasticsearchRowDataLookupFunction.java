@@ -20,6 +20,7 @@ package org.apache.flink.streaming.connectors.elasticsearch.table;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
+import com.alibaba.fastjson.JSON;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -175,11 +176,11 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
             BoolQueryBuilder lookupCondition = new BoolQueryBuilder();
             for (int i = 0; i < lookupKeys.length; i++) {
                 Object value = converters[i].toExternal(keys[i]);
-                if (StringUtils.isNullOrWhitespaceOnly(value.toString())) {
-                    LOG.warn("字段【{}】的值为空", lookupKeys[i]);
-                    return;
+                if (Objects.isNull(value) || StringUtils.isNullOrWhitespaceOnly(value.toString())) {
+                    LOG.info("字段【{}】的值为空", lookupKeys[i]);
+                } else {
+                    lookupCondition.must(new TermQueryBuilder(lookupKeys[i], value));
                 }
-                lookupCondition.must(new TermQueryBuilder(lookupKeys[i], value));
             }
             searchSourceBuilder.query(lookupCondition);
             searchRequest.source(searchSourceBuilder);
@@ -202,7 +203,13 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
                         LOG.info("查询es耗时大于100ms，查询【{}】耗时：{}ms", keys[0], cost);
                     }
                 } else {
+                    long l = System.currentTimeMillis();
                     searchResponse = callBridge.search(client, searchRequest);
+                    long cost = System.currentTimeMillis() - l;
+                    if (cost > 100) {
+                        LOG.info("本次查询es耗时{}ms大于100ms，请求信息：{}, 结果：{}", cost,
+                            searchRequest.toString(), JSON.toJSONString(searchResponse.f1));
+                    }
                 }
                 if (searchResponse.f1.length > 0) {
                     String[] result = searchResponse.f1;
@@ -231,13 +238,12 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
                             collect(row);
                             rows.add(row);
                         }
-                        if (cacheMissingKey || !rows.isEmpty()) {
-                            cache.put(keyRow, rows);
-                        }
+                        cache.put(keyRow, rows);
                     }
-                }
-                if (cacheMissingKey) {
-                    cache.put(keyRow, Lists.newLinkedList());
+                } else {
+                    if (cacheMissingKey) {
+                        cache.put(keyRow, Lists.newLinkedList());
+                    }
                 }
                 break;
             } catch (Exception e) {
