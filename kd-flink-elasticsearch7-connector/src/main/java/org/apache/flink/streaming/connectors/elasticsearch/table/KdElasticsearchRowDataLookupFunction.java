@@ -236,9 +236,10 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
                         }
                         cache.put(keyRow, rows);
                     }
-                }
-                if (cacheMissingKey) {
-                    cache.put(keyRow, Lists.newLinkedList());
+                } else {
+                    if (cacheMissingKey) {
+                        cache.put(keyRow, Lists.newLinkedList());
+                    }
                 }
                 break;
             } catch (Exception e) {
