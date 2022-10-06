@@ -84,13 +84,13 @@ public class Elasticsearch7ApiCallBridge
             });
 
             clientConfig.computeIfPresent(CONNECTION_TIMEOUT.key(), (k, v) -> {
-                requestConfigBuilder.setSocketTimeout(
+                requestConfigBuilder.setConnectTimeout(
                     Integer.parseInt(clientConfig.get(CONNECTION_TIMEOUT.key())));
                 return v;
             });
 
             clientConfig.computeIfPresent(CONNECTION_REQUEST_TIMEOUT.key(), (k, v) -> {
-                requestConfigBuilder.setSocketTimeout(
+                requestConfigBuilder.setConnectionRequestTimeout(
                     Integer.parseInt(clientConfig.get(CONNECTION_REQUEST_TIMEOUT.key())));
                 return v;
             });
