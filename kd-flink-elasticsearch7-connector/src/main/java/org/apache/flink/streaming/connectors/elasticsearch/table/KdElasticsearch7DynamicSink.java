@@ -154,15 +154,15 @@ final class KdElasticsearch7DynamicSink implements DynamicTableSink {
 
             config.config.getOptional(CONNECTION_TIMEOUT).ifPresent(
                 k -> builder.setProperties(CONNECTION_TIMEOUT.key(),
-                    String.valueOf(k.getSeconds())));
+                    String.valueOf(k.getSeconds() * 1000)));
 
             config.config.getOptional(CONNECTION_REQUEST_TIMEOUT).ifPresent(
                 k -> builder.setProperties(CONNECTION_REQUEST_TIMEOUT.key(),
-                    String.valueOf(k.getSeconds())));
+                    String.valueOf(k.getSeconds() * 1000)));
 
             config.config.getOptional(SOCKET_TIMEOUT).ifPresent(
                 k -> builder.setProperties(SOCKET_TIMEOUT.key(),
-                    String.valueOf(k.getSeconds())));
+                    String.valueOf(k.getSeconds() * 1000)));
 
             // we must overwrite the default factory which is defined with a lambda because of a bug
             // in shading lambda serialization shading see FLINK-18006
