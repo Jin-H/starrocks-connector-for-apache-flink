@@ -132,6 +132,27 @@ public class KdElasticsearch7Options {
             .withDescription(
                 "Whether to exception where query es");
 
+    public static final ConfigOption<Duration> CONNECTION_REQUEST_TIMEOUT =
+        ConfigOptions.key("connection.request-timeout")
+            .durationType()
+            .noDefaultValue()
+            .withDescription(
+                "The timeout for requesting a connection from the connection manager.");
+
+    public static final ConfigOption<Duration> CONNECTION_TIMEOUT =
+        ConfigOptions.key("connection.timeout")
+            .durationType()
+            .noDefaultValue()
+            .withDescription("The timeout for establishing a connection.");
+
+    public static final ConfigOption<Duration> SOCKET_TIMEOUT =
+        ConfigOptions.key("socket.timeout")
+            .durationType()
+            .noDefaultValue()
+            .withDescription(
+                "The socket timeout (SO_TIMEOUT) for waiting for data or, put differently,"
+                    + "a maximum period inactivity between two consecutive data packets.");
+
 
     /**
      * Types of the lookup cache.
