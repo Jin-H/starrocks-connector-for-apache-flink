@@ -34,8 +34,11 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.KEY_DELIMITER_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.PASSWORD_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.USERNAME_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.CONNECTION_REQUEST_TIMEOUT;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.CONNECTION_TIMEOUT;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SINK_MODE_FIELD_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SINK_MODE_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SOCKET_TIMEOUT;
 
 import java.util.Optional;
 import java.util.Set;
@@ -71,22 +74,25 @@ public class KdElasticsearch7DynamicSinkFactory implements DynamicTableSinkFacto
         Stream.of(HOSTS_OPTION, INDEX_OPTION).collect(Collectors.toSet());
     private static final Set<ConfigOption<?>> optionalOptions =
         Stream.of(
-            KEY_DELIMITER_OPTION,
-            FAILURE_HANDLER_OPTION,
-            FLUSH_ON_CHECKPOINT_OPTION,
-            SINK_MODE_OPTION,
-            SINK_MODE_FIELD_OPTION,
-            BULK_FLASH_MAX_SIZE_OPTION,
-            BULK_FLUSH_MAX_ACTIONS_OPTION,
-            BULK_FLUSH_INTERVAL_OPTION,
-            BULK_FLUSH_BACKOFF_TYPE_OPTION,
-            BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION,
-            BULK_FLUSH_BACKOFF_DELAY_OPTION,
-            CONNECTION_MAX_RETRY_TIMEOUT_OPTION,
-            CONNECTION_PATH_PREFIX,
-            FORMAT_OPTION,
-            PASSWORD_OPTION,
-            USERNAME_OPTION)
+                KEY_DELIMITER_OPTION,
+                FAILURE_HANDLER_OPTION,
+                FLUSH_ON_CHECKPOINT_OPTION,
+                SINK_MODE_OPTION,
+                SINK_MODE_FIELD_OPTION,
+                BULK_FLASH_MAX_SIZE_OPTION,
+                BULK_FLUSH_MAX_ACTIONS_OPTION,
+                BULK_FLUSH_INTERVAL_OPTION,
+                BULK_FLUSH_BACKOFF_TYPE_OPTION,
+                BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION,
+                BULK_FLUSH_BACKOFF_DELAY_OPTION,
+                CONNECTION_MAX_RETRY_TIMEOUT_OPTION,
+                CONNECTION_PATH_PREFIX,
+                FORMAT_OPTION,
+                PASSWORD_OPTION,
+                USERNAME_OPTION,
+                CONNECTION_TIMEOUT,
+                CONNECTION_REQUEST_TIMEOUT,
+                SOCKET_TIMEOUT)
             .collect(Collectors.toSet());
 
     @Override

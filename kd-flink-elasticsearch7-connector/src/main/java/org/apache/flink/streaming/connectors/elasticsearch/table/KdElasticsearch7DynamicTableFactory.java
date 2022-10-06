@@ -17,6 +17,8 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.PASSWORD_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.USERNAME_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.CACHE_TYPE;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.CONNECTION_REQUEST_TIMEOUT;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.CONNECTION_TIMEOUT;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.IGNORE_QUERY_ELASTICSEARCH;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.LOOKUP_CACHE_MAX_ROWS;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.LOOKUP_CACHE_TTL;
@@ -27,6 +29,7 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasti
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SCROLL_TIMEOUT_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SINK_MODE_FIELD_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SINK_MODE_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SOCKET_TIMEOUT;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SinkModeType;
 
 import java.util.Optional;
@@ -99,7 +102,10 @@ public class KdElasticsearch7DynamicTableFactory implements DynamicTableSourceFa
         RETRY_ON_CONFLICT,
         PARTIAL_CACHE_CACHE_MISSING_KEY,
         CACHE_TYPE,
-        IGNORE_QUERY_ELASTICSEARCH
+        IGNORE_QUERY_ELASTICSEARCH,
+        CONNECTION_REQUEST_TIMEOUT,
+        CONNECTION_TIMEOUT,
+        SOCKET_TIMEOUT
     ).collect(Collectors.toSet());
 
     @Override

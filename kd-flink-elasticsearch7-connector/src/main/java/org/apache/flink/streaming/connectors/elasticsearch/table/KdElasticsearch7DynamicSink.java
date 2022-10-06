@@ -18,9 +18,12 @@
 
 package org.apache.flink.streaming.connectors.elasticsearch.table;
 
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.CONNECTION_REQUEST_TIMEOUT;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.CONNECTION_TIMEOUT;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.RETRY_ON_CONFLICT;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SINK_MODE_FIELD_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SINK_MODE_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SOCKET_TIMEOUT;
 
 import java.util.List;
 import java.util.Objects;
@@ -149,6 +152,18 @@ final class KdElasticsearch7DynamicSink implements DynamicTableSink {
             config.getBulkFlushBackoffRetries().ifPresent(builder::setBulkFlushBackoffRetries);
             config.getBulkFlushBackoffDelay().ifPresent(builder::setBulkFlushBackoffDelay);
 
+            config.config.getOptional(CONNECTION_TIMEOUT).ifPresent(
+                k -> builder.setProperties(CONNECTION_TIMEOUT.key(),
+                    String.valueOf(k.getSeconds())));
+
+            config.config.getOptional(CONNECTION_REQUEST_TIMEOUT).ifPresent(
+                k -> builder.setProperties(CONNECTION_REQUEST_TIMEOUT.key(),
+                    String.valueOf(k.getSeconds())));
+
+            config.config.getOptional(SOCKET_TIMEOUT).ifPresent(
+                k -> builder.setProperties(SOCKET_TIMEOUT.key(),
+                    String.valueOf(k.getSeconds())));
+
             // we must overwrite the default factory which is defined with a lambda because of a bug
             // in shading lambda serialization shading see FLINK-18006
             if (config.getUsername().isPresent()
@@ -202,6 +217,10 @@ final class KdElasticsearch7DynamicSink implements DynamicTableSink {
             if (pathPrefix != null) {
                 restClientBuilder.setPathPrefix(pathPrefix);
             }
+            restClientBuilder.setRequestConfigCallback(requestConfigBuilder -> {
+
+                return requestConfigBuilder;
+            });
         }
 
         @Override
