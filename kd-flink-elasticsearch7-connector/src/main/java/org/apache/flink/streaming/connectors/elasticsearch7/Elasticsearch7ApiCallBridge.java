@@ -73,7 +73,7 @@ public class Elasticsearch7ApiCallBridge
     @Override
     public RestHighLevelClient createClient(Map<String, String> clientConfig) {
         RestClientBuilder builder =
-            RestClient.builder(httpHosts.toArray(new HttpHost[httpHosts.size()]));
+            RestClient.builder(httpHosts.toArray(new HttpHost[0]));
         restClientFactory.configureRestClientBuilder(builder);
 
         builder.setRequestConfigCallback(requestConfigBuilder -> {
@@ -94,10 +94,9 @@ public class Elasticsearch7ApiCallBridge
                     Integer.parseInt(clientConfig.get(CONNECTION_REQUEST_TIMEOUT.key())));
                 return v;
             });
-
+            LOG.debug("request config : {}", requestConfigBuilder.build().toString());
             return requestConfigBuilder;
         });
-        LOG.info("创建rest-high-level-client， config : {}", clientConfig);
 
         return new RestHighLevelClient(builder);
     }
