@@ -46,5 +46,13 @@ under the License.
       <outputDirectory>${component.connector.dir}</outputDirectory>
     </fileSet>
 
+    <fileSet>
+      <directory>../kd-flink-clickhouse-sql-connector/target/connector</directory>
+      <includes>
+        <include>kd-flink-clickhouse-sql-connector-1.0.2-1.13-RELEASE.jar</include>
+      </includes>
+      <outputDirectory>/</outputDirectory>
+    </fileSet>
+
   </fileSets>
 </assembly>
