@@ -12,6 +12,7 @@
     <module>kd-flink-elasticsearch6-connector</module>
     <module>kd-flink-elasticsearch7-connector</module>
     <module>flink-component-dist</module>
+    <module>kd-flink-clickhouse-sql-connector</module>
   </modules>
 
   <properties>
