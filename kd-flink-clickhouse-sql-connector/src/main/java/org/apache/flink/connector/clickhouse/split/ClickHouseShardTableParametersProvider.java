@@ -1,10 +1,9 @@
 package org.apache.flink.connector.clickhouse.split;
 
-import org.apache.flink.annotation.Experimental;
+import java.util.Arrays;
 
 import org.apache.commons.lang3.ArrayUtils;
-
-import java.util.Arrays;
+import org.apache.flink.annotation.Experimental;
 
 import static org.apache.flink.util.Preconditions.checkArgument;
 

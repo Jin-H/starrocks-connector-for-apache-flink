@@ -4,8 +4,8 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>com.kedacom</groupId>
-    <artifactId>flink-component</artifactId>
-    <version>${revision}</version>
+    <artifactId>flink-components</artifactId>
+    <version>1.1.8</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -94,35 +94,6 @@
           <source>${maven.compiler.source}</source>
           <target>${maven.compiler.target}</target>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>com.diffplug.spotless</groupId>
-        <artifactId>spotless-maven-plugin</artifactId>
-        <version>${spotless-maven-plugin.version}</version>
-        <configuration>
-          <java>
-            <googleJavaFormat>
-              <version>1.7</version>
-              <style>AOSP</style>
-            </googleJavaFormat>
-            <!-- \# refers to the static imports -->
-            <importOrder>
-              <order>
-                org.apache.flink,org.apache.flink.shaded,,javax,java,scala,\#
-              </order>
-            </importOrder>
-            <removeUnusedImports/>
-          </java>
-        </configuration>
-        <executions>
-          <execution>
-            <id>spotless-check</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

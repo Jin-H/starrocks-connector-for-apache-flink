@@ -1,9 +1,8 @@
 package org.apache.flink.connector.clickhouse.internal.options;
 
-import javax.annotation.Nullable;
-
 import java.io.Serializable;
 import java.util.Optional;
+import javax.annotation.Nullable;
 
 /** ClickHouse connection options. */
 public class ClickHouseConnectionOptions implements Serializable {

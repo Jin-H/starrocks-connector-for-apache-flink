@@ -1,15 +1,5 @@
 package org.apache.flink.connector.clickhouse.util;
 
-import org.apache.flink.connector.clickhouse.internal.schema.DistributedEngineFull;
-import org.apache.flink.connector.clickhouse.internal.schema.Expression;
-import org.apache.flink.connector.clickhouse.internal.schema.FieldExpr;
-import org.apache.flink.connector.clickhouse.internal.schema.FunctionExpr;
-
-import org.apache.http.client.utils.URIBuilder;
-import ru.yandex.clickhouse.ClickHouseConnection;
-
-import javax.annotation.Nullable;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,6 +13,14 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
+
+import org.apache.flink.connector.clickhouse.internal.schema.DistributedEngineFull;
+import org.apache.flink.connector.clickhouse.internal.schema.Expression;
+import org.apache.flink.connector.clickhouse.internal.schema.FieldExpr;
+import org.apache.flink.connector.clickhouse.internal.schema.FunctionExpr;
+import org.apache.http.client.utils.URIBuilder;
+import ru.yandex.clickhouse.ClickHouseConnection;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;

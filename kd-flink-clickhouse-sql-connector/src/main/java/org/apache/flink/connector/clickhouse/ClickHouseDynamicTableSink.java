@@ -1,5 +1,9 @@
 package org.apache.flink.connector.clickhouse;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import javax.annotation.Nonnull;
+
 import org.apache.flink.connector.clickhouse.internal.AbstractClickHouseOutputFormat;
 import org.apache.flink.connector.clickhouse.internal.options.ClickHouseDmlOptions;
 import org.apache.flink.table.catalog.ResolvedSchema;
@@ -10,11 +14,6 @@ import org.apache.flink.table.connector.sink.abilities.SupportsPartitioning;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.Preconditions;
-
-import javax.annotation.Nonnull;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * A {@link DynamicTableSink} that describes how to create a {@link ClickHouseDynamicTableSink} from

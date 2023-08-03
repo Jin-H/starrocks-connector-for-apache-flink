@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nullable;
+
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkBase;
@@ -42,22 +43,22 @@ public interface ElasticsearchApiCallBridge<C extends AutoCloseable> extends Ser
     /**
      * Creates a {@link BulkProcessor.Builder} for creating the bulk processor.
      *
-     * @param client   the Elasticsearch client.
-     * @param client   the Elasticsearch client.
+     * @param client the Elasticsearch client.
+     * @param client the Elasticsearch client.
      * @param listener the bulk processor listender.
      * @return the bulk processor builder.
      */
     BulkProcessor.Builder createBulkProcessorBuilder(C client, BulkProcessor.Listener listener);
 
-    ElasticsearchInputSplit[] createInputSplitsInternal(C client, String index, String type,
-        int minNumSplits);
+    ElasticsearchInputSplit[] createInputSplitsInternal(
+            C client, String index, String type, int minNumSplits);
 
     Tuple2<String, String[]> search(C client, SearchRequest searchRequest) throws IOException;
 
     Tuple2<String, String[]> get(C client, GetRequest getRequest) throws IOException;
 
     Tuple2<String, String[]> scroll(C client, SearchScrollRequest searchScrollRequest)
-        throws IOException;
+            throws IOException;
 
     void close(C client) throws IOException;
 
@@ -66,7 +67,7 @@ public interface ElasticsearchApiCallBridge<C extends AutoCloseable> extends Ser
      *
      * @param bulkItemResponse the bulk item response to extract cause of failure
      * @return the extracted {@link Throwable} from the response ({@code null} is the response is
-     * successful).
+     *     successful).
      */
     @Nullable
     Throwable extractFailureCauseFromBulkItemResponse(BulkItemResponse bulkItemResponse);
@@ -75,14 +76,14 @@ public interface ElasticsearchApiCallBridge<C extends AutoCloseable> extends Ser
      * Set backoff-related configurations on the provided {@link BulkProcessor.Builder}. The builder
      * will be later on used to instantiate the actual {@link BulkProcessor}.
      *
-     * @param builder            the {@link BulkProcessor.Builder} to configure.
-     * @param builder            the {@link BulkProcessor.Builder} to configure.
+     * @param builder the {@link BulkProcessor.Builder} to configure.
+     * @param builder the {@link BulkProcessor.Builder} to configure.
      * @param flushBackoffPolicy user-provided backoff retry settings ({@code null} if the user
-     *                           disabled backoff retries).
+     *     disabled backoff retries).
      */
     void configureBulkProcessorBackoff(
-        BulkProcessor.Builder builder,
-        @Nullable ElasticsearchSinkBase.BulkFlushBackoffPolicy flushBackoffPolicy);
+            BulkProcessor.Builder builder,
+            @Nullable ElasticsearchSinkBase.BulkFlushBackoffPolicy flushBackoffPolicy);
 
     /**
      * Verify the client connection by making a test request/ping to the Elasticsearch cluster.
@@ -100,15 +101,13 @@ public interface ElasticsearchApiCallBridge<C extends AutoCloseable> extends Ser
      * compatible.
      */
     default RequestIndexer createBulkProcessorIndexer(
-        BulkProcessor bulkProcessor,
-        boolean flushOnCheckpoint,
-        AtomicLong numPendingRequestsRef) {
+            BulkProcessor bulkProcessor,
+            boolean flushOnCheckpoint,
+            AtomicLong numPendingRequestsRef) {
         return null;
     }
 
-    /**
-     * Perform any necessary state cleanup.
-     */
+    /** Perform any necessary state cleanup. */
     default void cleanup() {
         // nothing to cleanup by default
     }

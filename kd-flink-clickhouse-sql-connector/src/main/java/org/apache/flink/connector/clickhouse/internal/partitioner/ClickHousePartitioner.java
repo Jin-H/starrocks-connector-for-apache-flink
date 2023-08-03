@@ -1,9 +1,9 @@
 package org.apache.flink.connector.clickhouse.internal.partitioner;
 
+import java.io.Serializable;
+
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.RowData.FieldGetter;
-
-import java.io.Serializable;
 
 /** ClickHouse data partitioner interface. */
 public abstract class ClickHousePartitioner implements Serializable {

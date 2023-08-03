@@ -1,5 +1,12 @@
 package org.apache.flink.connector.clickhouse.internal.executor;
 
+import java.io.Serializable;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.function.Function;
+import java.util.stream.IntStream;
+
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.connector.clickhouse.internal.ClickHouseStatementFactory;
 import org.apache.flink.connector.clickhouse.internal.connection.ClickHouseConnectionProvider;
@@ -9,18 +16,10 @@ import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
-
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.yandex.clickhouse.ClickHouseConnection;
 import ru.yandex.clickhouse.ClickHousePreparedStatement;
-
-import java.io.Serializable;
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.function.Function;
-import java.util.stream.IntStream;
 
 import static org.apache.flink.table.data.RowData.createFieldGetter;
 

@@ -1,11 +1,10 @@
 package org.apache.flink.connector.clickhouse.internal.options;
 
-import org.apache.flink.connector.clickhouse.config.ClickHouseConfigOptions.SinkShardingStrategy;
-import org.apache.flink.connector.clickhouse.config.ClickHouseConfigOptions.SinkUpdateStrategy;
-
+import java.time.Duration;
 import javax.annotation.Nullable;
 
-import java.time.Duration;
+import org.apache.flink.connector.clickhouse.config.ClickHouseConfigOptions.SinkShardingStrategy;
+import org.apache.flink.connector.clickhouse.config.ClickHouseConfigOptions.SinkUpdateStrategy;
 
 /** ClickHouse data modify language options. */
 public class ClickHouseDmlOptions extends ClickHouseConnectionOptions {

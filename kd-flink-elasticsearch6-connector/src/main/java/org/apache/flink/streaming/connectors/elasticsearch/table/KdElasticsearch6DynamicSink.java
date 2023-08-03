@@ -18,13 +18,10 @@
 
 package org.apache.flink.streaming.connectors.elasticsearch.table;
 
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.RETRY_ON_CONFLICT;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.SINK_MODE_FIELD_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.SINK_MODE_OPTION;
-
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nullable;
+
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.serialization.SerializationSchema;
@@ -50,6 +47,10 @@ import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.common.xcontent.XContentType;
 
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.RETRY_ON_CONFLICT;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.SINK_MODE_FIELD_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch6Options.SINK_MODE_OPTION;
+
 /**
  * A {@link DynamicTableSink} that describes how to create a {@link ElasticsearchSink} from a
  * logical description.
@@ -58,16 +59,17 @@ import org.elasticsearch.common.xcontent.XContentType;
 final class KdElasticsearch6DynamicSink implements DynamicTableSink {
 
     @VisibleForTesting
-    static final KdElasticsearch6RequestFactory REQUEST_FACTORY = new KdElasticsearch6RequestFactory();
+    static final KdElasticsearch6RequestFactory REQUEST_FACTORY =
+            new KdElasticsearch6RequestFactory();
 
     private final EncodingFormat<SerializationSchema<RowData>> format;
     private final TableSchema schema;
     private final Elasticsearch6Configuration config;
 
     public KdElasticsearch6DynamicSink(
-        EncodingFormat<SerializationSchema<RowData>> format,
-        Elasticsearch6Configuration config,
-        TableSchema schema) {
+            EncodingFormat<SerializationSchema<RowData>> format,
+            Elasticsearch6Configuration config,
+            TableSchema schema) {
         this(format, config, schema, (ElasticsearchSink.Builder::new));
     }
 
@@ -87,14 +89,14 @@ final class KdElasticsearch6DynamicSink implements DynamicTableSink {
     interface KdElasticSearchBuilderProvider {
 
         ElasticsearchSink.Builder<RowData> createBuilder(
-            List<HttpHost> httpHosts, KdRowElasticsearch6SinkFunction upsertSinkFunction);
+                List<HttpHost> httpHosts, KdRowElasticsearch6SinkFunction upsertSinkFunction);
     }
 
     KdElasticsearch6DynamicSink(
-        EncodingFormat<SerializationSchema<RowData>> format,
-        Elasticsearch6Configuration config,
-        TableSchema schema,
-        KdElasticSearchBuilderProvider builderProvider) {
+            EncodingFormat<SerializationSchema<RowData>> format,
+            Elasticsearch6Configuration config,
+            TableSchema schema,
+            KdElasticSearchBuilderProvider builderProvider) {
         this.format = format;
         this.schema = schema;
         this.config = config;
@@ -120,23 +122,23 @@ final class KdElasticsearch6DynamicSink implements DynamicTableSink {
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
         return () -> {
             SerializationSchema<RowData> format =
-                this.format.createRuntimeEncoder(context, schema.toRowDataType());
+                    this.format.createRuntimeEncoder(context, schema.toRowDataType());
             final KdRowElasticsearch6SinkFunction upsertFunction =
-                new KdRowElasticsearch6SinkFunction(
-                    IndexGeneratorFactory.createIndexGenerator(config.getIndex(), schema),
-                    config.getDocumentType(),
-                    format,
-                    XContentType.JSON,
-                    REQUEST_FACTORY,
-                    KeyExtractor.createKeyExtractor(schema, config.getKeyDelimiter()),
-                    config.config.getOptional(SINK_MODE_OPTION)
-                        .orElse(KdElasticsearch6Options.SinkModeType.OVERWRITE),
-                    config.config.getOptional(SINK_MODE_FIELD_OPTION).orElse(null),
-                    config.config.getOptional(RETRY_ON_CONFLICT).orElse(null)
-                );
+                    new KdRowElasticsearch6SinkFunction(
+                            IndexGeneratorFactory.createIndexGenerator(config.getIndex(), schema),
+                            config.getDocumentType(),
+                            format,
+                            XContentType.JSON,
+                            REQUEST_FACTORY,
+                            KeyExtractor.createKeyExtractor(schema, config.getKeyDelimiter()),
+                            config.config
+                                    .getOptional(SINK_MODE_OPTION)
+                                    .orElse(KdElasticsearch6Options.SinkModeType.OVERWRITE),
+                            config.config.getOptional(SINK_MODE_FIELD_OPTION).orElse(null),
+                            config.config.getOptional(RETRY_ON_CONFLICT).orElse(null));
 
             final ElasticsearchSink.Builder<RowData> builder =
-                builderProvider.createBuilder(config.getHosts(), upsertFunction);
+                    builderProvider.createBuilder(config.getHosts(), upsertFunction);
 
             builder.setFailureHandler(config.getFailureHandler());
             builder.setBulkFlushMaxActions(config.getBulkFlushMaxActions());
@@ -150,17 +152,17 @@ final class KdElasticsearch6DynamicSink implements DynamicTableSink {
             // we must overwrite the default factory which is defined with a lambda because of a bug
             // in shading lambda serialization shading see FLINK-18006
             if (config.getUsername().isPresent()
-                && config.getPassword().isPresent()
-                && !StringUtils.isNullOrWhitespaceOnly(config.getUsername().get())
-                && !StringUtils.isNullOrWhitespaceOnly(config.getPassword().get())) {
+                    && config.getPassword().isPresent()
+                    && !StringUtils.isNullOrWhitespaceOnly(config.getUsername().get())
+                    && !StringUtils.isNullOrWhitespaceOnly(config.getPassword().get())) {
                 builder.setRestClientFactory(
-                    new KdAuthRestClientFactory(
-                        config.getPathPrefix().orElse(null),
-                        config.getUsername().get(),
-                        config.getPassword().get()));
+                        new KdAuthRestClientFactory(
+                                config.getPathPrefix().orElse(null),
+                                config.getUsername().get(),
+                                config.getPassword().get()));
             } else {
                 builder.setRestClientFactory(
-                    new KdDefaultRestClientFactory(config.getPathPrefix().orElse(null)));
+                        new KdDefaultRestClientFactory(config.getPathPrefix().orElse(null)));
             }
 
             final ElasticsearchSink<RowData> sink = builder.build();
@@ -183,9 +185,7 @@ final class KdElasticsearch6DynamicSink implements DynamicTableSink {
         return "kd-elasticsearch6";
     }
 
-    /**
-     * Serializable {@link RestClientFactory} used by the sink.
-     */
+    /** Serializable {@link RestClientFactory} used by the sink. */
     @VisibleForTesting
     static class KdDefaultRestClientFactory implements RestClientFactory {
 
@@ -220,9 +220,7 @@ final class KdElasticsearch6DynamicSink implements DynamicTableSink {
         }
     }
 
-    /**
-     * Serializable {@link RestClientFactory} used by the sink which enable authentication.
-     */
+    /** Serializable {@link RestClientFactory} used by the sink which enable authentication. */
     @VisibleForTesting
     static class KdAuthRestClientFactory implements RestClientFactory {
 
@@ -232,7 +230,7 @@ final class KdElasticsearch6DynamicSink implements DynamicTableSink {
         private transient CredentialsProvider credentialsProvider;
 
         public KdAuthRestClientFactory(
-            @Nullable String pathPrefix, String username, String password) {
+                @Nullable String pathPrefix, String username, String password) {
             this.pathPrefix = pathPrefix;
             this.password = password;
             this.username = username;
@@ -246,12 +244,12 @@ final class KdElasticsearch6DynamicSink implements DynamicTableSink {
             if (credentialsProvider == null) {
                 credentialsProvider = new BasicCredentialsProvider();
                 credentialsProvider.setCredentials(
-                    AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+                        AuthScope.ANY, new UsernamePasswordCredentials(username, password));
             }
             restClientBuilder.setHttpClientConfigCallback(
-                httpAsyncClientBuilder ->
-                    httpAsyncClientBuilder.setDefaultCredentialsProvider(
-                        credentialsProvider));
+                    httpAsyncClientBuilder ->
+                            httpAsyncClientBuilder.setDefaultCredentialsProvider(
+                                    credentialsProvider));
         }
 
         @Override
@@ -264,8 +262,8 @@ final class KdElasticsearch6DynamicSink implements DynamicTableSink {
             }
             KdAuthRestClientFactory that = (KdAuthRestClientFactory) o;
             return Objects.equals(pathPrefix, that.pathPrefix)
-                && Objects.equals(username, that.username)
-                && Objects.equals(password, that.password);
+                    && Objects.equals(username, that.username)
+                    && Objects.equals(password, that.password);
         }
 
         @Override
@@ -274,30 +272,28 @@ final class KdElasticsearch6DynamicSink implements DynamicTableSink {
         }
     }
 
-    /**
-     * Version-specific creation of {@link ActionRequest}s used by the sink.
-     */
+    /** Version-specific creation of {@link ActionRequest}s used by the sink. */
     private static class KdElasticsearch6RequestFactory implements RequestFactory {
 
         @Override
         public UpdateRequest createUpdateRequest(
-            String index,
-            String docType,
-            String key,
-            XContentType contentType,
-            byte[] document) {
+                String index,
+                String docType,
+                String key,
+                XContentType contentType,
+                byte[] document) {
             return new UpdateRequest(index, docType, key)
-                .doc(document, contentType)
-                .upsert(document, contentType);
+                    .doc(document, contentType)
+                    .upsert(document, contentType);
         }
 
         @Override
         public IndexRequest createIndexRequest(
-            String index,
-            String docType,
-            String key,
-            XContentType contentType,
-            byte[] document) {
+                String index,
+                String docType,
+                String key,
+                XContentType contentType,
+                byte[] document) {
             return new IndexRequest(index, docType, key).source(document, contentType);
         }
 
@@ -317,9 +313,9 @@ final class KdElasticsearch6DynamicSink implements DynamicTableSink {
         }
         KdElasticsearch6DynamicSink that = (KdElasticsearch6DynamicSink) o;
         return Objects.equals(format, that.format)
-            && Objects.equals(schema, that.schema)
-            && Objects.equals(config, that.config)
-            && Objects.equals(builderProvider, that.builderProvider);
+                && Objects.equals(schema, that.schema)
+                && Objects.equals(config, that.config)
+                && Objects.equals(builderProvider, that.builderProvider);
     }
 
     @Override

@@ -1,8 +1,7 @@
 package org.apache.flink.connector.clickhouse.internal.schema;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
+import javax.annotation.Nonnull;
 
 import static java.util.stream.Collectors.joining;
 import static org.apache.flink.util.Preconditions.checkArgument;

@@ -5,25 +5,27 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.kedacom</groupId>
-  <artifactId>flink-component</artifactId>
+  <artifactId>flink-components</artifactId>
   <packaging>pom</packaging>
-  <version>${revision}</version>
+  <version>1.1.8</version>
   <modules>
     <module>kd-flink-elasticsearch6-connector</module>
     <module>kd-flink-elasticsearch7-connector</module>
     <module>flink-component-dist</module>
     <module>kd-flink-clickhouse-sql-connector</module>
+    <module>flink-connector-stdout</module>
   </modules>
 
   <properties>
-    <connector.version>1.1.8</connector.version>
+    <spotless.version>2.36.0</spotless.version>
+    <connector.version>${project.version}</connector.version>
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
-    <revision>${connector.version}-${profile.active}</revision>
     <maven.shade.version>3.2.4</maven.shade.version>
     <flink.version>1.13.2</flink.version>
     <scala.binary.version>2.12</scala.binary.version>
-    <component.connector.dir>/data/file/bigdata/connector_jar/${connector.version}</component.connector.dir>
+    <component.connector.dir>/data/file/bigdata/connector_jar/${connector.version}
+    </component.connector.dir>
   </properties>
 
   <dependencyManagement>
@@ -105,142 +107,67 @@
       <id>kd-maven-bigdata</id>
       <url>http://nexus.kedacom.com/repository/maven-bigdata-snapshot/</url>
     </snapshotRepository>
+    <repository>
+      <id>kd-maven-bigdata</id>
+      <url>http://nexus.kedacom.com/repository/maven-bigdata/</url>
+    </repository>
+
   </distributionManagement>
 
-  <profiles>
-    <profile>
-      <id>snapshot</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <properties>
-        <profile.active>SNAPSHOT</profile.active>
-      </properties>
-    </profile>
-    <profile>
-      <id>release</id>
-      <properties>
-        <profile.active>RELEASE</profile.active>
-      </properties>
-      <distributionManagement>
-        <repository>
-          <id>kd-maven-bigdata</id>
-          <url>http://nexus.kedacom.com/repository/maven-bigdata/</url>
-        </repository>
-      </distributionManagement>
-    </profile>
-    <profile>
-      <id>rc</id>
-      <properties>
-        <profile.active>RC</profile.active>
-      </properties>
-      <distributionManagement>
-        <repository>
-          <id>kd-maven-bigdata</id>
-          <url>http://nexus.kedacom.com/repository/maven-bigdata/</url>
-        </repository>
-      </distributionManagement>
-    </profile>
-
-    <profile>
-      <id>sonar</id>
-      <properties>
-        <sonar.projectKey>flink-component</sonar.projectKey>
-        <sonar.host.url>http://10.165.32.89:6004</sonar.host.url>
-        <sonar.login>75520128891d8fafaa79125a216c0b1bfbb2fc23</sonar.login>
-        <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
-      </properties>
-
-    </profile>
-
-  </profiles>
-
-
   <build>
-    <pluginManagement>
-      <plugins>
-
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>3.1.2</version>
-          <dependencies>
-            <dependency>
-              <groupId>com.puppycrawl.tools</groupId>
-              <artifactId>checkstyle</artifactId>
-              <version>8.45.1</version>
-            </dependency>
-          </dependencies>
-        </plugin>
-
-
-        <plugin>
-          <groupId>org.sonarsource.scanner.maven</groupId>
-          <artifactId>sonar-maven-plugin</artifactId>
-          <version>3.9.1.2184</version>
-        </plugin>
-
-
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>flatten-maven-plugin</artifactId>
-          <version>1.1.0</version>
-          <configuration>
-            <updatePomFile>true</updatePomFile>
-            <flattenMode>resolveCiFriendliesOnly</flattenMode>
-          </configuration>
-          <executions>
-            <execution>
-              <id>flatten</id>
-              <phase>process-resources</phase>
-              <goals>
-                <goal>flatten</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>flatten.clean</id>
-              <phase>clean</phase>
-              <goals>
-                <goal>clean</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-      </plugins>
-    </pluginManagement>
 
     <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>flatten-maven-plugin</artifactId>
-      </plugin>
 
       <plugin>
-        <groupId>org.sonarsource.scanner.maven</groupId>
-        <artifactId>sonar-maven-plugin</artifactId>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
+        <groupId>io.github.phillipuniverse</groupId>
+        <artifactId>githook-maven-plugin</artifactId>
+        <version>1.0.5</version>
         <configuration>
-          <configLocation>ci/checkstyle.xml</configLocation>
-          <encoding>UTF-8</encoding>
-          <failsOnError>false</failsOnError>
-          <failOnViolation>false</failOnViolation>
+          <hooks>
+            <pre-commit>
+              <!--@formatter:off-->
+              #!/bin/bash
+              set -xe
+              mvn -DskipTests=true spotless:check
+              <!--@formatter:on-->
+            </pre-commit>
+          </hooks>
         </configuration>
         <executions>
           <execution>
-            <id>checkstyle</id>
-            <phase>validate</phase>
+            <phase>initialize</phase>
             <goals>
-              <goal>check</goal>
+              <goal>install</goal>
             </goals>
           </execution>
         </executions>
       </plugin>
-
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless.version}</version>
+        <configuration>
+          <java>
+            <googleJavaFormat>
+              <style>AOSP</style>
+            </googleJavaFormat>
+            <importOrder>
+              <order>com.kedacom,java|javax,,\#</order>
+            </importOrder>
+          </java>
+          <kotlin>
+            <ktlint/>
+          </kotlin>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>compile</phase>
+          </execution>
+        </executions>
+      </plugin>
 
     </plugins>
 

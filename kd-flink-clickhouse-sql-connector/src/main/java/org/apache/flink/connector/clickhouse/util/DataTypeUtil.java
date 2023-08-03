@@ -1,13 +1,12 @@
 package org.apache.flink.connector.clickhouse.util;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.catalog.exceptions.CatalogException;
 import org.apache.flink.table.types.DataType;
-
 import ru.yandex.clickhouse.response.ClickHouseColumnInfo;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.apache.flink.table.types.logical.DecimalType.MAX_PRECISION;
 

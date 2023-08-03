@@ -1,8 +1,8 @@
 package org.apache.flink.connector.clickhouse.internal;
 
-import org.apache.commons.lang3.ArrayUtils;
-
 import java.util.Arrays;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;

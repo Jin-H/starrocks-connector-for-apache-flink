@@ -1,9 +1,9 @@
 package org.apache.flink.connector.clickhouse.internal.partitioner;
 
+import java.math.BigInteger;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.RowData;
-
-import java.math.BigInteger;
 
 /** Partition key value based, value must be a number. */
 public class ValuePartitioner extends ClickHousePartitioner {
