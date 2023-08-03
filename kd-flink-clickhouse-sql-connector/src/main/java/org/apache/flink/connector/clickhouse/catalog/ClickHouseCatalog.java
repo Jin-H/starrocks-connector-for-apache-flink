@@ -1,5 +1,17 @@
 package org.apache.flink.connector.clickhouse.catalog;
 
+import java.lang.reflect.Method;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import javax.annotation.Nullable;
+
 import org.apache.flink.connector.clickhouse.ClickHouseDynamicTableFactory;
 import org.apache.flink.connector.clickhouse.internal.schema.DistributedEngineFull;
 import org.apache.flink.connector.clickhouse.util.ClickHouseUtil;
@@ -33,7 +45,6 @@ import org.apache.flink.table.expressions.Expression;
 import org.apache.flink.table.factories.Factory;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.util.StringUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.yandex.clickhouse.BalancedClickhouseDataSource;
@@ -41,19 +52,6 @@ import ru.yandex.clickhouse.ClickHouseConnection;
 import ru.yandex.clickhouse.response.ClickHouseColumnInfo;
 import ru.yandex.clickhouse.response.ClickHouseResultSetMetaData;
 import ru.yandex.clickhouse.settings.ClickHouseQueryParam;
-
-import javax.annotation.Nullable;
-
-import java.lang.reflect.Method;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
 
 import static org.apache.flink.connector.clickhouse.config.ClickHouseConfig.CATALOG_IGNORE_PRIMARY_KEY;
 import static org.apache.flink.connector.clickhouse.config.ClickHouseConfig.DATABASE_NAME;
@@ -426,8 +424,10 @@ public class ClickHouseCatalog extends AbstractCatalog {
     @Override
     public List<CatalogPartitionSpec> listPartitions(
             ObjectPath tablePath, CatalogPartitionSpec partitionSpec)
-            throws TableNotExistException, TableNotPartitionedException,
-                    PartitionSpecInvalidException, CatalogException {
+            throws TableNotExistException,
+                    TableNotPartitionedException,
+                    PartitionSpecInvalidException,
+                    CatalogException {
         return Collections.emptyList();
     }
 
@@ -456,8 +456,10 @@ public class ClickHouseCatalog extends AbstractCatalog {
             CatalogPartitionSpec partitionSpec,
             CatalogPartition partition,
             boolean ignoreIfExists)
-            throws TableNotExistException, TableNotPartitionedException,
-                    PartitionSpecInvalidException, PartitionAlreadyExistsException,
+            throws TableNotExistException,
+                    TableNotPartitionedException,
+                    PartitionSpecInvalidException,
+                    PartitionAlreadyExistsException,
                     CatalogException {
         throw new UnsupportedOperationException();
     }

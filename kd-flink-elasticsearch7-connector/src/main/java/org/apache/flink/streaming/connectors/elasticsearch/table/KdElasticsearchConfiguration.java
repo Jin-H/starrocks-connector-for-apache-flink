@@ -17,6 +17,16 @@
  */
 package org.apache.flink.streaming.connectors.elasticsearch.table;
 
+import java.time.Duration;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.apache.flink.annotation.Internal;
+import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.table.api.ValidationException;
+import org.apache.http.HttpHost;
+
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.HOSTS_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.LOOKUP_CACHE_MAX_ROWS;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.LOOKUP_CACHE_TTL;
@@ -24,52 +34,44 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasti
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SCROLL_MAX_SIZE_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SCROLL_TIMEOUT_OPTION;
 
-import java.time.Duration;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import org.apache.flink.annotation.Internal;
-import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.ValidationException;
-import org.apache.http.HttpHost;
-
-/**
- * Accessor methods to elasticsearch options.
- */
+/** Accessor methods to elasticsearch options. */
 @Internal
 public class KdElasticsearchConfiguration extends ElasticsearchConfiguration {
 
     public List<HttpHost> getHosts() {
         return config.get(HOSTS_OPTION).stream()
-            .map(KdElasticsearchConfiguration::validateAndParseHostsString)
-            .collect(Collectors.toList());
+                .map(KdElasticsearchConfiguration::validateAndParseHostsString)
+                .collect(Collectors.toList());
     }
 
     private static HttpHost validateAndParseHostsString(String host) {
         try {
             HttpHost httpHost = HttpHost.create(host);
             if (httpHost.getPort() < 0) {
-                throw new ValidationException(String.format(
-                    "Could not parse host '%s' in option '%s'. It should follow the format 'http://host_name:port'. Missing port.",
-                    host, ElasticsearchOptions.HOSTS_OPTION.key()));
+                throw new ValidationException(
+                        String.format(
+                                "Could not parse host '%s' in option '%s'. It should follow the format 'http://host_name:port'. Missing port.",
+                                host, ElasticsearchOptions.HOSTS_OPTION.key()));
             } else if (httpHost.getSchemeName() == null) {
-                throw new ValidationException(String.format(
-                    "Could not parse host '%s' in option '%s'. It should follow the format 'http://host_name:port'. Missing scheme.",
-                    host, ElasticsearchOptions.HOSTS_OPTION.key()));
+                throw new ValidationException(
+                        String.format(
+                                "Could not parse host '%s' in option '%s'. It should follow the format 'http://host_name:port'. Missing scheme.",
+                                host, ElasticsearchOptions.HOSTS_OPTION.key()));
             } else {
                 return httpHost;
             }
         } catch (Exception var2) {
-            throw new ValidationException(String.format(
-                "Could not parse host '%s' in option '%s'. It should follow the format 'http://host_name:port'.",
-                host, ElasticsearchOptions.HOSTS_OPTION.key()), var2);
+            throw new ValidationException(
+                    String.format(
+                            "Could not parse host '%s' in option '%s'. It should follow the format 'http://host_name:port'.",
+                            host, ElasticsearchOptions.HOSTS_OPTION.key()),
+                    var2);
         }
     }
 
     KdElasticsearchConfiguration(ReadableConfig config, ClassLoader classLoader) {
         super(config, classLoader);
     }
-
 
     public Optional<Integer> getScrollMaxSize() {
         return config.getOptional(SCROLL_MAX_SIZE_OPTION);
@@ -78,7 +80,6 @@ public class KdElasticsearchConfiguration extends ElasticsearchConfiguration {
     public Optional<Long> getScrollTimeout() {
         return config.getOptional(SCROLL_TIMEOUT_OPTION).map(Duration::toMillis);
     }
-
 
     public long getCacheMaxSize() {
         return config.get(LOOKUP_CACHE_MAX_ROWS);
@@ -91,6 +92,4 @@ public class KdElasticsearchConfiguration extends ElasticsearchConfiguration {
     public int getMaxRetryTimes() {
         return config.get(LOOKUP_MAX_RETRIES);
     }
-
-
 }

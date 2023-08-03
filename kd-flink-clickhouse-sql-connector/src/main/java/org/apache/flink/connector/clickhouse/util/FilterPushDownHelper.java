@@ -1,14 +1,5 @@
 package org.apache.flink.connector.clickhouse.util;
 
-import org.apache.flink.table.expressions.CallExpression;
-import org.apache.flink.table.expressions.FieldReferenceExpression;
-import org.apache.flink.table.expressions.ResolvedExpression;
-import org.apache.flink.table.expressions.ValueLiteralExpression;
-import org.apache.flink.table.functions.BuiltInFunctionDefinitions;
-import org.apache.flink.table.functions.FunctionDefinition;
-
-import ru.yandex.clickhouse.util.ClickHouseValueFormatter;
-
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -19,6 +10,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
 import java.util.function.Function;
+
+import org.apache.flink.table.expressions.CallExpression;
+import org.apache.flink.table.expressions.FieldReferenceExpression;
+import org.apache.flink.table.expressions.ResolvedExpression;
+import org.apache.flink.table.expressions.ValueLiteralExpression;
+import org.apache.flink.table.functions.BuiltInFunctionDefinitions;
+import org.apache.flink.table.functions.FunctionDefinition;
+import ru.yandex.clickhouse.util.ClickHouseValueFormatter;
 
 import static java.util.stream.Collectors.joining;
 import static org.apache.flink.connector.clickhouse.util.ClickHouseUtil.EMPTY;

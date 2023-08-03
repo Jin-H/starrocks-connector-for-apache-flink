@@ -1,5 +1,9 @@
 package org.apache.flink.connector.clickhouse.config;
 
+import java.io.Serializable;
+import java.time.Duration;
+import java.util.function.Function;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.connector.clickhouse.internal.partitioner.BalancedPartitioner;
@@ -10,10 +14,6 @@ import org.apache.flink.connector.clickhouse.internal.partitioner.ValuePartition
 import org.apache.flink.table.catalog.CommonCatalogOptions;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.factories.FactoryUtil;
-
-import java.io.Serializable;
-import java.time.Duration;
-import java.util.function.Function;
 
 /** clickhouse config options. */
 public class ClickHouseConfigOptions {

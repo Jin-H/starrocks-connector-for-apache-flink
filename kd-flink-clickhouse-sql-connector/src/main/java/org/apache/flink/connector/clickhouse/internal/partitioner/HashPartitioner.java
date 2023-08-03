@@ -1,9 +1,9 @@
 package org.apache.flink.connector.clickhouse.internal.partitioner;
 
+import java.util.Objects;
+
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.RowData.FieldGetter;
-
-import java.util.Objects;
 
 /** Use primary-key's hash code to partition data. */
 public class HashPartitioner extends ClickHousePartitioner {

@@ -1,20 +1,5 @@
 package org.apache.flink.connector.clickhouse.internal.connection;
 
-import org.apache.flink.connector.clickhouse.internal.options.ClickHouseConnectionOptions;
-import org.apache.flink.connector.clickhouse.util.ClickHouseUtil;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import ru.yandex.clickhouse.BalancedClickhouseDataSource;
-import ru.yandex.clickhouse.ClickHouseConnection;
-import ru.yandex.clickhouse.settings.ClickHouseProperties;
-
 import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,6 +11,20 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.flink.connector.clickhouse.internal.options.ClickHouseConnectionOptions;
+import org.apache.flink.connector.clickhouse.util.ClickHouseUtil;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.yandex.clickhouse.BalancedClickhouseDataSource;
+import ru.yandex.clickhouse.ClickHouseConnection;
+import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
 import static java.util.stream.Collectors.toList;
 

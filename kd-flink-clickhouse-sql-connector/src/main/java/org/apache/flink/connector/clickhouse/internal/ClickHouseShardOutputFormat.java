@@ -1,5 +1,10 @@
 package org.apache.flink.connector.clickhouse.internal;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nonnull;
+
 import org.apache.flink.connector.clickhouse.internal.connection.ClickHouseConnectionProvider;
 import org.apache.flink.connector.clickhouse.internal.executor.ClickHouseExecutor;
 import org.apache.flink.connector.clickhouse.internal.options.ClickHouseDmlOptions;
@@ -8,14 +13,7 @@ import org.apache.flink.connector.clickhouse.internal.schema.DistributedEngineFu
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.Preconditions;
-
 import ru.yandex.clickhouse.ClickHouseConnection;
-
-import javax.annotation.Nonnull;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The shard output format of distributed table.<br>

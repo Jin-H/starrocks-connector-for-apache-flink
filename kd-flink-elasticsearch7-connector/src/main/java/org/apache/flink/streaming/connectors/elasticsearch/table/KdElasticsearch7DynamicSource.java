@@ -41,8 +41,8 @@ import org.apache.flink.util.Preconditions;
  * from a logical description.
  */
 @Internal
-public class KdElasticsearch7DynamicSource implements ScanTableSource, LookupTableSource,
-    SupportsProjectionPushDown {
+public class KdElasticsearch7DynamicSource
+        implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
     private final DecodingFormat<DeserializationSchema<RowData>> format;
     private final KdElasticsearchConfiguration config;
@@ -54,11 +54,12 @@ public class KdElasticsearch7DynamicSource implements ScanTableSource, LookupTab
     private final boolean ignoreQueryEs;
 
     public KdElasticsearch7DynamicSource(
-        DecodingFormat<DeserializationSchema<RowData>> format,
-        KdElasticsearchConfiguration config,
-        TableSchema physicalSchema,
-        KdElasticsearchLookupOptions lookupOptions,
-        boolean cacheMissingKey, boolean ignoreQueryEs) {
+            DecodingFormat<DeserializationSchema<RowData>> format,
+            KdElasticsearchConfiguration config,
+            TableSchema physicalSchema,
+            KdElasticsearchLookupOptions lookupOptions,
+            boolean cacheMissingKey,
+            boolean ignoreQueryEs) {
         this.format = format;
         this.config = config;
         this.physicalSchema = physicalSchema;
@@ -74,21 +75,23 @@ public class KdElasticsearch7DynamicSource implements ScanTableSource, LookupTab
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        ElasticSearch7InputFormat.Builder esInputFormatBuilder = new ElasticSearch7InputFormat.Builder();
+        ElasticSearch7InputFormat.Builder esInputFormatBuilder =
+                new ElasticSearch7InputFormat.Builder();
         esInputFormatBuilder.setHttpHosts(config.getHosts());
 
         RestClientFactory restClientFactory = null;
         if (config.getPathPrefix().isPresent()) {
-            restClientFactory = new KdElasticsearch7DynamicSink.DefaultRestClientFactory(
-                config.getPathPrefix().get());
+            restClientFactory =
+                    new KdElasticsearch7DynamicSink.DefaultRestClientFactory(
+                            config.getPathPrefix().get());
         } else {
             restClientFactory = new KdElasticsearch7DynamicSink.DefaultRestClientFactory(null);
         }
 
         esInputFormatBuilder.setRestClientFactory(restClientFactory);
         esInputFormatBuilder.setDeserializationSchema(
-            this.format.createRuntimeDecoder(runtimeProviderContext,
-                physicalSchema.toRowDataType()));
+                this.format.createRuntimeDecoder(
+                        runtimeProviderContext, physicalSchema.toRowDataType()));
         esInputFormatBuilder.setFieldNames(physicalSchema.getFieldNames());
         esInputFormatBuilder.setIndex(config.getIndex());
         if (config.getScrollMaxSize().isPresent()) {
@@ -99,54 +102,54 @@ public class KdElasticsearch7DynamicSource implements ScanTableSource, LookupTab
         }
 
         /**
-         * TODO: for SupportsFilterPushDown/ SupportsLimitPushDown
-         * 	builder.setPredicate();
-         * 	builder.setLimit();
+         * TODO: for SupportsFilterPushDown/ SupportsLimitPushDown builder.setPredicate();
+         * builder.setLimit();
          */
-
-        return InputFormatProvider.of(
-            esInputFormatBuilder.build()
-        );    }
+        return InputFormatProvider.of(esInputFormatBuilder.build());
+    }
 
     @Override
     public LookupRuntimeProvider getLookupRuntimeProvider(LookupContext context) {
 
         RestClientFactory restClientFactory = null;
         if (config.getPathPrefix().isPresent()) {
-            restClientFactory = new KdElasticsearch7DynamicSink.DefaultRestClientFactory(
-                config.getPathPrefix().get());
+            restClientFactory =
+                    new KdElasticsearch7DynamicSink.DefaultRestClientFactory(
+                            config.getPathPrefix().get());
         } else {
             restClientFactory = new KdElasticsearch7DynamicSink.DefaultRestClientFactory(null);
         }
 
-        Elasticsearch7ApiCallBridge elasticsearch7ApiCallBridge = new Elasticsearch7ApiCallBridge(
-            config.getHosts(), restClientFactory);
+        Elasticsearch7ApiCallBridge elasticsearch7ApiCallBridge =
+                new Elasticsearch7ApiCallBridge(config.getHosts(), restClientFactory);
 
         // Elasticsearch only support non-nested look up keys
         String[] lookupKeys = new String[context.getKeys().length];
         for (int i = 0; i < lookupKeys.length; i++) {
             int[] innerKeyArr = context.getKeys()[i];
-            Preconditions.checkArgument(innerKeyArr.length == 1,
-                "ElasticSearch only support non-nested look up keys");
+            Preconditions.checkArgument(
+                    innerKeyArr.length == 1, "ElasticSearch only support non-nested look up keys");
             lookupKeys[i] = physicalSchema.getFieldNames()[innerKeyArr[0]];
         }
 
-        return TableFunctionProvider.of(new KdElasticsearchRowDataLookupFunction(
-            this.format.createRuntimeDecoder(context, physicalSchema.toRowDataType()),
-            lookupOptions,
-            config.getIndex(),
-            config.getDocumentType(),
-            physicalSchema.getFieldNames(),
-            physicalSchema.getFieldDataTypes(),
-            lookupKeys,
-            elasticsearch7ApiCallBridge, cacheMissingKey, ignoreQueryEs)
-        );
+        return TableFunctionProvider.of(
+                new KdElasticsearchRowDataLookupFunction(
+                        this.format.createRuntimeDecoder(context, physicalSchema.toRowDataType()),
+                        lookupOptions,
+                        config.getIndex(),
+                        config.getDocumentType(),
+                        physicalSchema.getFieldNames(),
+                        physicalSchema.getFieldDataTypes(),
+                        lookupKeys,
+                        elasticsearch7ApiCallBridge,
+                        cacheMissingKey,
+                        ignoreQueryEs));
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new KdElasticsearch7DynamicSource(format, config, physicalSchema, lookupOptions,
-            cacheMissingKey, ignoreQueryEs);
+        return new KdElasticsearch7DynamicSource(
+                format, config, physicalSchema, lookupOptions, cacheMissingKey, ignoreQueryEs);
     }
 
     @Override

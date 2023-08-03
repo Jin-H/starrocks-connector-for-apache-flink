@@ -18,78 +18,85 @@
 
 package org.apache.flink.streaming.connectors.kd;
 
+import java.util.Objects;
+
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.core.io.LocatableInputSplit;
 
-import java.util.Objects;
-
 /**
- * This class implements a input splits for Elasticsearch, which doesn't contain sclie info.
- * You can reference https://github.com/elastic/elasticsearch-hadoop/blob/master/docs/src/reference/asciidoc/appendix/breaking.adoc
- * and find this words "Disabling sliced scrolls by default, and switching them to be an explicitly opt-in feature."
- * Each elasticsearch input split corresponds to a shard.
+ * This class implements a input splits for Elasticsearch, which doesn't contain sclie info. You can
+ * reference
+ * https://github.com/elastic/elasticsearch-hadoop/blob/master/docs/src/reference/asciidoc/appendix/breaking.adoc
+ * and find this words "Disabling sliced scrolls by default, and switching them to be an explicitly
+ * opt-in feature." Each elasticsearch input split corresponds to a shard.
  */
 @Internal
 public class ElasticsearchInputSplit extends LocatableInputSplit {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/** The name of the index to retrieve data from. */
-	private final String index;
+    /** The name of the index to retrieve data from. */
+    private final String index;
 
-	/** It is null in flink elasticsearch connector 7+. */
-	private final String type;
+    /** It is null in flink elasticsearch connector 7+. */
+    private final String type;
 
-	/** Index will split diffirent shards when index created. */
-	private final int shard;
+    /** Index will split diffirent shards when index created. */
+    private final int shard;
 
-	public ElasticsearchInputSplit(int splitNumber, String[] hostnames, String index, String type, int shard) {
-		super(splitNumber, hostnames);
-		this.index = index;
-		this.type = type;
-		this.shard = shard;
-	}
+    public ElasticsearchInputSplit(
+            int splitNumber, String[] hostnames, String index, String type, int shard) {
+        super(splitNumber, hostnames);
+        this.index = index;
+        this.type = type;
+        this.shard = shard;
+    }
 
-	public String getIndex() {
-		return index;
-	}
+    public String getIndex() {
+        return index;
+    }
 
-	public String getType() {
-		return type;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public int getShard() {
-		return shard;
-	}
+    public int getShard() {
+        return shard;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (!(o instanceof ElasticsearchInputSplit)) {
-			return false;
-		}
-		if (!super.equals(o)) {
-			return false;
-		}
-		ElasticsearchInputSplit split = (ElasticsearchInputSplit) o;
-		return getShard() == split.getShard() &&
-			Objects.equals(getIndex(), split.getIndex()) &&
-			Objects.equals(getType(), split.getType());
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ElasticsearchInputSplit)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        ElasticsearchInputSplit split = (ElasticsearchInputSplit) o;
+        return getShard() == split.getShard()
+                && Objects.equals(getIndex(), split.getIndex())
+                && Objects.equals(getType(), split.getType());
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(super.hashCode(), getIndex(), getType(), getShard());
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), getIndex(), getType(), getShard());
+    }
 
-	@Override
-	public String toString() {
-		return "ElasticsearchInputSplit{" +
-			"index='" + index + '\'' +
-			", type='" + type + '\'' +
-			", shard=" + shard +
-			'}';
-	}
+    @Override
+    public String toString() {
+        return "ElasticsearchInputSplit{"
+                + "index='"
+                + index
+                + '\''
+                + ", type='"
+                + type
+                + '\''
+                + ", shard="
+                + shard
+                + '}';
+    }
 }

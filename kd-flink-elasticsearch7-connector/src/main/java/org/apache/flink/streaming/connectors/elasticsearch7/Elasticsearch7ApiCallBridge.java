@@ -17,15 +17,12 @@
 
 package org.apache.flink.streaming.connectors.elasticsearch7;
 
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.CONNECTION_REQUEST_TIMEOUT;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.CONNECTION_TIMEOUT;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SOCKET_TIMEOUT;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nullable;
+
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchApiCallBridge;
 import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkBase;
@@ -43,25 +40,23 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Implementation of {@link ElasticsearchApiCallBridge} for Elasticsearch 7 and later versions.
- */
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.CONNECTION_REQUEST_TIMEOUT;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.CONNECTION_TIMEOUT;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.KdElasticsearch7Options.SOCKET_TIMEOUT;
+
+/** Implementation of {@link ElasticsearchApiCallBridge} for Elasticsearch 7 and later versions. */
 @Internal
 public class Elasticsearch7ApiCallBridge
-    implements ElasticsearchApiCallBridge<RestHighLevelClient> {
+        implements ElasticsearchApiCallBridge<RestHighLevelClient> {
 
     private static final long serialVersionUID = -5222683870097809633L;
 
     private static final Logger LOG = LoggerFactory.getLogger(Elasticsearch7ApiCallBridge.class);
 
-    /**
-     * User-provided HTTP Host.
-     */
+    /** User-provided HTTP Host. */
     private final List<HttpHost> httpHosts;
 
-    /**
-     * The factory to configure the rest client.
-     */
+    /** The factory to configure the rest client. */
     private final RestClientFactory restClientFactory;
 
     Elasticsearch7ApiCallBridge(List<HttpHost> httpHosts, RestClientFactory restClientFactory) {
@@ -72,42 +67,51 @@ public class Elasticsearch7ApiCallBridge
 
     @Override
     public RestHighLevelClient createClient(Map<String, String> clientConfig) {
-        RestClientBuilder builder =
-            RestClient.builder(httpHosts.toArray(new HttpHost[0]));
+        RestClientBuilder builder = RestClient.builder(httpHosts.toArray(new HttpHost[0]));
         restClientFactory.configureRestClientBuilder(builder);
 
-        builder.setRequestConfigCallback(requestConfigBuilder -> {
-            clientConfig.computeIfPresent(SOCKET_TIMEOUT.key(), (k, v) -> {
-                requestConfigBuilder.setSocketTimeout(
-                    Integer.parseInt(clientConfig.get(SOCKET_TIMEOUT.key())));
-                return v;
-            });
+        builder.setRequestConfigCallback(
+                requestConfigBuilder -> {
+                    clientConfig.computeIfPresent(
+                            SOCKET_TIMEOUT.key(),
+                            (k, v) -> {
+                                requestConfigBuilder.setSocketTimeout(
+                                        Integer.parseInt(clientConfig.get(SOCKET_TIMEOUT.key())));
+                                return v;
+                            });
 
-            clientConfig.computeIfPresent(CONNECTION_TIMEOUT.key(), (k, v) -> {
-                requestConfigBuilder.setConnectTimeout(
-                    Integer.parseInt(clientConfig.get(CONNECTION_TIMEOUT.key())));
-                return v;
-            });
+                    clientConfig.computeIfPresent(
+                            CONNECTION_TIMEOUT.key(),
+                            (k, v) -> {
+                                requestConfigBuilder.setConnectTimeout(
+                                        Integer.parseInt(
+                                                clientConfig.get(CONNECTION_TIMEOUT.key())));
+                                return v;
+                            });
 
-            clientConfig.computeIfPresent(CONNECTION_REQUEST_TIMEOUT.key(), (k, v) -> {
-                requestConfigBuilder.setConnectionRequestTimeout(
-                    Integer.parseInt(clientConfig.get(CONNECTION_REQUEST_TIMEOUT.key())));
-                return v;
-            });
-            LOG.debug("request config : {}", requestConfigBuilder.build().toString());
-            return requestConfigBuilder;
-        });
+                    clientConfig.computeIfPresent(
+                            CONNECTION_REQUEST_TIMEOUT.key(),
+                            (k, v) -> {
+                                requestConfigBuilder.setConnectionRequestTimeout(
+                                        Integer.parseInt(
+                                                clientConfig.get(
+                                                        CONNECTION_REQUEST_TIMEOUT.key())));
+                                return v;
+                            });
+                    LOG.debug("request config : {}", requestConfigBuilder.build().toString());
+                    return requestConfigBuilder;
+                });
 
         return new RestHighLevelClient(builder);
     }
 
     @Override
     public BulkProcessor.Builder createBulkProcessorBuilder(
-        RestHighLevelClient client, BulkProcessor.Listener listener) {
+            RestHighLevelClient client, BulkProcessor.Listener listener) {
         return BulkProcessor.builder(
-            (request, bulkListener) ->
-                client.bulkAsync(request, RequestOptions.DEFAULT, bulkListener),
-            listener);
+                (request, bulkListener) ->
+                        client.bulkAsync(request, RequestOptions.DEFAULT, bulkListener),
+                listener);
     }
 
     @Override
@@ -121,24 +125,24 @@ public class Elasticsearch7ApiCallBridge
 
     @Override
     public void configureBulkProcessorBackoff(
-        BulkProcessor.Builder builder,
-        @Nullable ElasticsearchSinkBase.BulkFlushBackoffPolicy flushBackoffPolicy) {
+            BulkProcessor.Builder builder,
+            @Nullable ElasticsearchSinkBase.BulkFlushBackoffPolicy flushBackoffPolicy) {
 
         BackoffPolicy backoffPolicy;
         if (flushBackoffPolicy != null) {
             switch (flushBackoffPolicy.getBackoffType()) {
                 case CONSTANT:
                     backoffPolicy =
-                        BackoffPolicy.constantBackoff(
-                            new TimeValue(flushBackoffPolicy.getDelayMillis()),
-                            flushBackoffPolicy.getMaxRetryCount());
+                            BackoffPolicy.constantBackoff(
+                                    new TimeValue(flushBackoffPolicy.getDelayMillis()),
+                                    flushBackoffPolicy.getMaxRetryCount());
                     break;
                 case EXPONENTIAL:
                 default:
                     backoffPolicy =
-                        BackoffPolicy.exponentialBackoff(
-                            new TimeValue(flushBackoffPolicy.getDelayMillis()),
-                            flushBackoffPolicy.getMaxRetryCount());
+                            BackoffPolicy.exponentialBackoff(
+                                    new TimeValue(flushBackoffPolicy.getDelayMillis()),
+                                    flushBackoffPolicy.getMaxRetryCount());
             }
         } else {
             backoffPolicy = BackoffPolicy.noBackoff();
@@ -149,11 +153,11 @@ public class Elasticsearch7ApiCallBridge
 
     @Override
     public RequestIndexer createBulkProcessorIndexer(
-        BulkProcessor bulkProcessor,
-        boolean flushOnCheckpoint,
-        AtomicLong numPendingRequestsRef) {
+            BulkProcessor bulkProcessor,
+            boolean flushOnCheckpoint,
+            AtomicLong numPendingRequestsRef) {
         return new Elasticsearch7BulkProcessorIndexer(
-            bulkProcessor, flushOnCheckpoint, numPendingRequestsRef);
+                bulkProcessor, flushOnCheckpoint, numPendingRequestsRef);
     }
 
     @Override

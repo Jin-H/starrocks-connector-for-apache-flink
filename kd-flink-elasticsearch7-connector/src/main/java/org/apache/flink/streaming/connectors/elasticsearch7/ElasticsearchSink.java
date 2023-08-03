@@ -17,6 +17,11 @@
 
 package org.apache.flink.streaming.connectors.elasticsearch7;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.streaming.connectors.elasticsearch.ActionRequestFailureHandler;
 import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkBase;
@@ -27,10 +32,6 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.client.RestHighLevelClient;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * Elasticsearch 7.x sink that requests multiple {@link ActionRequest ActionRequests} against a
@@ -63,17 +64,17 @@ public class ElasticsearchSink<T> extends ElasticsearchSinkBase<T, RestHighLevel
     private static final long serialVersionUID = 1L;
 
     private ElasticsearchSink(
-        Map<String, String> bulkRequestsConfig,
-        List<HttpHost> httpHosts,
-        ElasticsearchSinkFunction<T> elasticsearchSinkFunction,
-        ActionRequestFailureHandler failureHandler,
-        RestClientFactory restClientFactory) {
+            Map<String, String> bulkRequestsConfig,
+            List<HttpHost> httpHosts,
+            ElasticsearchSinkFunction<T> elasticsearchSinkFunction,
+            ActionRequestFailureHandler failureHandler,
+            RestClientFactory restClientFactory) {
 
         super(
-            new Elasticsearch7ApiCallBridge(httpHosts, restClientFactory),
-            bulkRequestsConfig,
-            elasticsearchSinkFunction,
-            failureHandler);
+                new Elasticsearch7ApiCallBridge(httpHosts, restClientFactory),
+                bulkRequestsConfig,
+                elasticsearchSinkFunction,
+                failureHandler);
     }
 
     /**
@@ -89,20 +90,19 @@ public class ElasticsearchSink<T> extends ElasticsearchSinkBase<T, RestHighLevel
 
         private final Map<String, String> bulkRequestsConfig = new HashMap<>();
         private ActionRequestFailureHandler failureHandler = new NoOpFailureHandler();
-        private RestClientFactory restClientFactory = restClientBuilder -> {
-        };
+        private RestClientFactory restClientFactory = restClientBuilder -> {};
 
         /**
          * Creates a new {@code ElasticsearchSink} that connects to the cluster using a {@link
          * RestHighLevelClient}.
          *
-         * @param httpHosts                 The list of {@link HttpHost} to which the {@link
-         *                                  RestHighLevelClient} connects to.
+         * @param httpHosts The list of {@link HttpHost} to which the {@link RestHighLevelClient}
+         *     connects to.
          * @param elasticsearchSinkFunction This is used to generate multiple {@link ActionRequest}
-         *                                  from the incoming element.
+         *     from the incoming element.
          */
         public Builder(
-            List<HttpHost> httpHosts, ElasticsearchSinkFunction<T> elasticsearchSinkFunction) {
+                List<HttpHost> httpHosts, ElasticsearchSinkFunction<T> elasticsearchSinkFunction) {
             this.httpHosts = Preconditions.checkNotNull(httpHosts);
             this.elasticsearchSinkFunction = Preconditions.checkNotNull(elasticsearchSinkFunction);
         }
@@ -115,11 +115,11 @@ public class ElasticsearchSink<T> extends ElasticsearchSinkBase<T, RestHighLevel
          */
         public void setBulkFlushMaxActions(int numMaxActions) {
             Preconditions.checkArgument(
-                numMaxActions == -1 || numMaxActions > 0,
-                "Max number of buffered actions must be larger than 0.");
+                    numMaxActions == -1 || numMaxActions > 0,
+                    "Max number of buffered actions must be larger than 0.");
 
             this.bulkRequestsConfig.put(
-                CONFIG_KEY_BULK_FLUSH_MAX_ACTIONS, String.valueOf(numMaxActions));
+                    CONFIG_KEY_BULK_FLUSH_MAX_ACTIONS, String.valueOf(numMaxActions));
         }
 
         /**
@@ -130,11 +130,11 @@ public class ElasticsearchSink<T> extends ElasticsearchSinkBase<T, RestHighLevel
          */
         public void setBulkFlushMaxSizeMb(int maxSizeMb) {
             Preconditions.checkArgument(
-                maxSizeMb == -1 || maxSizeMb > 0,
-                "Max size of buffered actions must be larger than 0.");
+                    maxSizeMb == -1 || maxSizeMb > 0,
+                    "Max size of buffered actions must be larger than 0.");
 
             this.bulkRequestsConfig.put(
-                CONFIG_KEY_BULK_FLUSH_MAX_SIZE_MB, String.valueOf(maxSizeMb));
+                    CONFIG_KEY_BULK_FLUSH_MAX_SIZE_MB, String.valueOf(maxSizeMb));
         }
 
         /**
@@ -144,11 +144,11 @@ public class ElasticsearchSink<T> extends ElasticsearchSinkBase<T, RestHighLevel
          */
         public void setBulkFlushInterval(long intervalMillis) {
             Preconditions.checkArgument(
-                intervalMillis == -1 || intervalMillis >= 0,
-                "Interval (in milliseconds) between each flush must be larger than or equal to 0.");
+                    intervalMillis == -1 || intervalMillis >= 0,
+                    "Interval (in milliseconds) between each flush must be larger than or equal to 0.");
 
             this.bulkRequestsConfig.put(
-                CONFIG_KEY_BULK_FLUSH_INTERVAL_MS, String.valueOf(intervalMillis));
+                    CONFIG_KEY_BULK_FLUSH_INTERVAL_MS, String.valueOf(intervalMillis));
         }
 
         /**
@@ -158,7 +158,7 @@ public class ElasticsearchSink<T> extends ElasticsearchSinkBase<T, RestHighLevel
          */
         public void setBulkFlushBackoff(boolean enabled) {
             this.bulkRequestsConfig.put(
-                CONFIG_KEY_BULK_FLUSH_BACKOFF_ENABLE, String.valueOf(enabled));
+                    CONFIG_KEY_BULK_FLUSH_BACKOFF_ENABLE, String.valueOf(enabled));
         }
 
         /**
@@ -168,22 +168,22 @@ public class ElasticsearchSink<T> extends ElasticsearchSinkBase<T, RestHighLevel
          */
         public void setBulkFlushBackoffType(FlushBackoffType flushBackoffType) {
             this.bulkRequestsConfig.put(
-                CONFIG_KEY_BULK_FLUSH_BACKOFF_TYPE,
-                Preconditions.checkNotNull(flushBackoffType).toString());
+                    CONFIG_KEY_BULK_FLUSH_BACKOFF_TYPE,
+                    Preconditions.checkNotNull(flushBackoffType).toString());
         }
 
         /**
          * Sets the maximum number of retries for a backoff attempt when flushing bulk requests.
          *
          * @param maxRetries the maximum number of retries for a backoff attempt when flushing bulk
-         *                   requests
+         *     requests
          */
         public void setBulkFlushBackoffRetries(int maxRetries) {
             Preconditions.checkArgument(
-                maxRetries > 0, "Max number of backoff attempts must be larger than 0.");
+                    maxRetries > 0, "Max number of backoff attempts must be larger than 0.");
 
             this.bulkRequestsConfig.put(
-                CONFIG_KEY_BULK_FLUSH_BACKOFF_RETRIES, String.valueOf(maxRetries));
+                    CONFIG_KEY_BULK_FLUSH_BACKOFF_RETRIES, String.valueOf(maxRetries));
         }
 
         /**
@@ -191,14 +191,14 @@ public class ElasticsearchSink<T> extends ElasticsearchSinkBase<T, RestHighLevel
          * milliseconds.
          *
          * @param delayMillis the amount of delay between each backoff attempt when flushing bulk
-         *                    requests, in milliseconds.
+         *     requests, in milliseconds.
          */
         public void setBulkFlushBackoffDelay(long delayMillis) {
             Preconditions.checkArgument(
-                delayMillis >= 0,
-                "Delay (in milliseconds) between each backoff attempt must be larger than or equal to 0.");
+                    delayMillis >= 0,
+                    "Delay (in milliseconds) between each backoff attempt must be larger than or equal to 0.");
             this.bulkRequestsConfig.put(
-                CONFIG_KEY_BULK_FLUSH_BACKOFF_DELAY, String.valueOf(delayMillis));
+                    CONFIG_KEY_BULK_FLUSH_BACKOFF_DELAY, String.valueOf(delayMillis));
         }
 
         /**
@@ -230,11 +230,11 @@ public class ElasticsearchSink<T> extends ElasticsearchSinkBase<T, RestHighLevel
          */
         public ElasticsearchSink<T> build() {
             return new ElasticsearchSink<>(
-                bulkRequestsConfig,
-                httpHosts,
-                elasticsearchSinkFunction,
-                failureHandler,
-                restClientFactory);
+                    bulkRequestsConfig,
+                    httpHosts,
+                    elasticsearchSinkFunction,
+                    failureHandler,
+                    restClientFactory);
         }
 
         @Override
@@ -247,20 +247,20 @@ public class ElasticsearchSink<T> extends ElasticsearchSinkBase<T, RestHighLevel
             }
             Builder<?> builder = (Builder<?>) o;
             return Objects.equals(httpHosts, builder.httpHosts)
-                && Objects.equals(elasticsearchSinkFunction, builder.elasticsearchSinkFunction)
-                && Objects.equals(bulkRequestsConfig, builder.bulkRequestsConfig)
-                && Objects.equals(failureHandler, builder.failureHandler)
-                && Objects.equals(restClientFactory, builder.restClientFactory);
+                    && Objects.equals(elasticsearchSinkFunction, builder.elasticsearchSinkFunction)
+                    && Objects.equals(bulkRequestsConfig, builder.bulkRequestsConfig)
+                    && Objects.equals(failureHandler, builder.failureHandler)
+                    && Objects.equals(restClientFactory, builder.restClientFactory);
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(
-                httpHosts,
-                elasticsearchSinkFunction,
-                bulkRequestsConfig,
-                failureHandler,
-                restClientFactory);
+                    httpHosts,
+                    elasticsearchSinkFunction,
+                    bulkRequestsConfig,
+                    failureHandler,
+                    restClientFactory);
         }
     }
 }

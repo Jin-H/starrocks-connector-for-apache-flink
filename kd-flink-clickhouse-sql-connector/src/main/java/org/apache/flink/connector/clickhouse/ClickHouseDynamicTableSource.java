@@ -1,5 +1,9 @@
 package org.apache.flink.connector.clickhouse;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
 import org.apache.flink.connector.clickhouse.internal.AbstractClickHouseInputFormat;
 import org.apache.flink.connector.clickhouse.internal.options.ClickHouseReadOptions;
 import org.apache.flink.connector.clickhouse.util.FilterPushDownHelper;
@@ -16,10 +20,6 @@ import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.FieldsDataType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.utils.DataTypeUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 
 /** ClickHouse table source. */
 public class ClickHouseDynamicTableSource

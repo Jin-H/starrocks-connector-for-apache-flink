@@ -1,5 +1,13 @@
 package org.apache.flink.connector.clickhouse.internal;
 
+import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.flink.annotation.Experimental;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
@@ -9,18 +17,9 @@ import org.apache.flink.connector.clickhouse.internal.options.ClickHouseReadOpti
 import org.apache.flink.connector.clickhouse.internal.schema.DistributedEngineFull;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.yandex.clickhouse.ClickHouseConnection;
-
-import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /** ClickHouse shard input format. */
 @Experimental

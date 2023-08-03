@@ -1,20 +1,19 @@
 package org.apache.flink.connector.clickhouse.internal;
 
+import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.connector.clickhouse.internal.connection.ClickHouseConnectionProvider;
 import org.apache.flink.connector.clickhouse.internal.converter.ClickHouseRowConverter;
 import org.apache.flink.connector.clickhouse.internal.options.ClickHouseReadOptions;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.yandex.clickhouse.ClickHouseConnection;
-
-import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 /** ClickHouse batch input format. */
 public class ClickHouseBatchInputFormat extends AbstractClickHouseInputFormat {

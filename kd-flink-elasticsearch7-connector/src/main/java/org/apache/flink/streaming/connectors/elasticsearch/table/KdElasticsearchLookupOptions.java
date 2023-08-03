@@ -21,9 +21,7 @@ package org.apache.flink.streaming.connectors.elasticsearch.table;
 import java.io.Serializable;
 import java.util.Objects;
 
-/**
- * Options for the JDBC lookup.
- */
+/** Options for the JDBC lookup. */
 public class KdElasticsearchLookupOptions implements Serializable {
 
     private final long cacheMaxSize;
@@ -56,42 +54,34 @@ public class KdElasticsearchLookupOptions implements Serializable {
     public boolean equals(Object o) {
         if (o instanceof KdElasticsearchLookupOptions) {
             KdElasticsearchLookupOptions options = (KdElasticsearchLookupOptions) o;
-            return Objects.equals(cacheMaxSize, options.cacheMaxSize) &&
-                Objects.equals(cacheExpireMs, options.cacheExpireMs) &&
-                Objects.equals(maxRetryTimes, options.maxRetryTimes);
+            return Objects.equals(cacheMaxSize, options.cacheMaxSize)
+                    && Objects.equals(cacheExpireMs, options.cacheExpireMs)
+                    && Objects.equals(maxRetryTimes, options.maxRetryTimes);
         } else {
             return false;
         }
     }
 
-    /**
-     * Builder of {@link KdElasticsearchLookupOptions}.
-     */
+    /** Builder of {@link KdElasticsearchLookupOptions}. */
     public static class Builder {
 
         private long cacheMaxSize = -1L;
         private long cacheExpireMs = -1L;
         private int maxRetryTimes = 3;
 
-        /**
-         * optional, lookup cache max size, over this value, the old data will be eliminated.
-         */
+        /** optional, lookup cache max size, over this value, the old data will be eliminated. */
         public Builder setCacheMaxSize(long cacheMaxSize) {
             this.cacheMaxSize = cacheMaxSize;
             return this;
         }
 
-        /**
-         * optional, lookup cache expire mills, over this time, the old data will expire.
-         */
+        /** optional, lookup cache expire mills, over this time, the old data will expire. */
         public Builder setCacheExpireMs(long cacheExpireMs) {
             this.cacheExpireMs = cacheExpireMs;
             return this;
         }
 
-        /**
-         * optional, max retry times for jdbc connector.
-         */
+        /** optional, max retry times for jdbc connector. */
         public Builder setMaxRetryTimes(int maxRetryTimes) {
             this.maxRetryTimes = maxRetryTimes;
             return this;

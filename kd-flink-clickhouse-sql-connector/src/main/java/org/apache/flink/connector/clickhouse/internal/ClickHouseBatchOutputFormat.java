@@ -1,16 +1,15 @@
 package org.apache.flink.connector.clickhouse.internal;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import javax.annotation.Nonnull;
+
 import org.apache.flink.connector.clickhouse.internal.connection.ClickHouseConnectionProvider;
 import org.apache.flink.connector.clickhouse.internal.executor.ClickHouseExecutor;
 import org.apache.flink.connector.clickhouse.internal.options.ClickHouseDmlOptions;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.Preconditions;
-
-import javax.annotation.Nonnull;
-
-import java.io.IOException;
-import java.sql.SQLException;
 
 /** Output data to ClickHouse local table. */
 public class ClickHouseBatchOutputFormat extends AbstractClickHouseOutputFormat {

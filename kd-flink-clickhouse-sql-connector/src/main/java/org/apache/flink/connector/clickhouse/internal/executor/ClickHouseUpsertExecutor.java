@@ -1,5 +1,9 @@
 package org.apache.flink.connector.clickhouse.internal.executor;
 
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.function.Function;
+
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.connector.clickhouse.config.ClickHouseConfigOptions.SinkUpdateStrategy;
 import org.apache.flink.connector.clickhouse.internal.ClickHouseShardOutputFormat;
@@ -7,15 +11,10 @@ import org.apache.flink.connector.clickhouse.internal.connection.ClickHouseConne
 import org.apache.flink.connector.clickhouse.internal.converter.ClickHouseRowConverter;
 import org.apache.flink.connector.clickhouse.internal.options.ClickHouseDmlOptions;
 import org.apache.flink.table.data.RowData;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.yandex.clickhouse.ClickHouseConnection;
 import ru.yandex.clickhouse.ClickHousePreparedStatement;
-
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.function.Function;
 
 import static org.apache.flink.connector.clickhouse.config.ClickHouseConfigOptions.SinkUpdateStrategy.DISCARD;
 import static org.apache.flink.connector.clickhouse.config.ClickHouseConfigOptions.SinkUpdateStrategy.INSERT;

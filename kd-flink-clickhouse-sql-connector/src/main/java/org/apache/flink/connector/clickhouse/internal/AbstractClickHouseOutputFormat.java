@@ -1,5 +1,13 @@
 package org.apache.flink.connector.clickhouse.internal;
 
+import java.io.Flushable;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.flink.api.common.io.RichOutputFormat;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.clickhouse.config.ClickHouseConfigOptions.SinkShardingStrategy;
@@ -14,17 +22,8 @@ import org.apache.flink.table.data.RowData.FieldGetter;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.Preconditions;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.Flushable;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /** Abstract class of ClickHouse output format. */
 public abstract class AbstractClickHouseOutputFormat extends RichOutputFormat<RowData>

@@ -18,9 +18,6 @@
 
 package org.apache.flink.streaming.connectors.elasticsearch.table;
 
-import static org.apache.flink.util.Preconditions.checkNotNull;
-
-import com.alibaba.fastjson.JSON;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +27,8 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import com.alibaba.fastjson.JSON;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -55,15 +54,15 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * A lookup function for ElasticsearchSource.
- */
-@Internal
-public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> extends
-    TableFunction<RowData> {
+import static org.apache.flink.util.Preconditions.checkNotNull;
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-        KdElasticsearchRowDataLookupFunction.class);
+/** A lookup function for ElasticsearchSource. */
+@Internal
+public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable>
+        extends TableFunction<RowData> {
+
+    private static final Logger LOG =
+            LoggerFactory.getLogger(KdElasticsearchRowDataLookupFunction.class);
     private static final long serialVersionUID = 1L;
 
     private final DeserializationSchema<RowData> deserializationSchema;
@@ -91,15 +90,16 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
     private final boolean ignoreQueryEs;
 
     public KdElasticsearchRowDataLookupFunction(
-        DeserializationSchema<RowData> deserializationSchema,
-        KdElasticsearchLookupOptions lookupOptions,
-        String index,
-        String type,
-        String[] producedNames,
-        DataType[] producedTypes,
-        String[] lookupKeys,
-        ElasticsearchApiCallBridge<C> callBridge,
-        boolean cacheMissingKey, boolean ignoreQueryEs) {
+            DeserializationSchema<RowData> deserializationSchema,
+            KdElasticsearchLookupOptions lookupOptions,
+            String index,
+            String type,
+            String[] producedNames,
+            DataType[] producedTypes,
+            String[] lookupKeys,
+            ElasticsearchApiCallBridge<C> callBridge,
+            boolean cacheMissingKey,
+            boolean ignoreQueryEs) {
 
         checkNotNull(deserializationSchema, "No DeserializationSchema supplied.");
         checkNotNull(lookupOptions, "No ElasticsearchLookupOptions supplied.");
@@ -120,12 +120,14 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
         this.converters = new DataFormatConverter[lookupKeys.length];
         this.cacheMissingKey = cacheMissingKey;
         this.ignoreQueryEs = ignoreQueryEs;
-        Map<String, Integer> nameToIndex = IntStream.range(0, producedNames.length).boxed().collect(
-            Collectors.toMap(i -> producedNames[i], i -> i));
+        Map<String, Integer> nameToIndex =
+                IntStream.range(0, producedNames.length)
+                        .boxed()
+                        .collect(Collectors.toMap(i -> producedNames[i], i -> i));
         for (int i = 0; i < lookupKeys.length; i++) {
             Integer position = nameToIndex.get(lookupKeys[i]);
-            Preconditions.checkArgument(position != null, "Lookup keys %s not selected",
-                Arrays.toString(lookupKeys));
+            Preconditions.checkArgument(
+                    position != null, "Lookup keys %s not selected", Arrays.toString(lookupKeys));
             converters[i] = DataFormatConverters.getConverterForDataType(producedTypes[position]);
         }
 
@@ -134,13 +136,17 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
 
     @Override
     public void open(FunctionContext context) {
-        this.cache = cacheMaxSize == -1 || cacheExpireMs == -1 ? null : CacheBuilder.newBuilder()
-            .expireAfterWrite(cacheExpireMs, TimeUnit.MILLISECONDS)
-            .maximumSize(cacheMaxSize)
-            .build();
+        this.cache =
+                cacheMaxSize == -1 || cacheExpireMs == -1
+                        ? null
+                        : CacheBuilder.newBuilder()
+                                .expireAfterWrite(cacheExpireMs, TimeUnit.MILLISECONDS)
+                                .maximumSize(cacheMaxSize)
+                                .build();
         this.client = callBridge.createClient(null);
 
-        //Set searchRequest in open method in case of amount of calling in eval method when every record comes.
+        // Set searchRequest in open method in case of amount of calling in eval method when every
+        // record comes.
         this.searchRequest = new SearchRequest(index);
         if (type == null) {
             searchRequest.types(Strings.EMPTY_ARRAY);
@@ -150,7 +156,6 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
         searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.fetchSource(producedNames, null);
     }
-
 
     /**
      * This is a lookup method which is called by Flink framework in runtime.
@@ -170,7 +175,7 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
         }
 
         boolean queryWithId =
-            lookupKeys != null && lookupKeys.length == 1 && "_id".equals(lookupKeys[0]);
+                lookupKeys != null && lookupKeys.length == 1 && "_id".equals(lookupKeys[0]);
 
         if (!queryWithId) {
             BoolQueryBuilder lookupCondition = new BoolQueryBuilder();
@@ -196,8 +201,8 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
                         return;
                     }
                     long l = System.currentTimeMillis();
-                    searchResponse = callBridge.get(client,
-                        new GetRequest(index, String.valueOf(keys[0])));
+                    searchResponse =
+                            callBridge.get(client, new GetRequest(index, String.valueOf(keys[0])));
                     long cost = System.currentTimeMillis() - l;
                     if (cost > 100) {
                         LOG.info("查询es耗时大于100ms，查询【{}】耗时：{}ms", keys[0], cost);
@@ -207,8 +212,11 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
                     searchResponse = callBridge.search(client, searchRequest);
                     long cost = System.currentTimeMillis() - l;
                     if (cost > 100) {
-                        LOG.info("本次查询es耗时{}ms大于100ms，请求信息：{}, 结果：{}", cost,
-                            searchRequest.toString(), JSON.toJSONString(searchResponse.f1));
+                        LOG.info(
+                                "本次查询es耗时{}ms大于100ms，请求信息：{}, 结果：{}",
+                                cost,
+                                searchRequest.toString(),
+                                JSON.toJSONString(searchResponse.f1));
                     }
                 }
                 if (searchResponse.f1.length > 0) {
@@ -247,9 +255,11 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
                 }
                 break;
             } catch (Exception e) {
-                LOG.error(String.format(
-                    "Elasticsearch search error, retry times = %d, ignore-query-failure : %s",
-                    retry, ignoreQueryEs), e);
+                LOG.error(
+                        String.format(
+                                "Elasticsearch search error, retry times = %d, ignore-query-failure : %s",
+                                retry, ignoreQueryEs),
+                        e);
                 if (ignoreQueryEs) {
                     continue;
                 }
@@ -260,7 +270,7 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable> exten
                     Thread.sleep(1000L * retry);
                 } catch (InterruptedException e1) {
                     LOG.warn(
-                        "Interrupted while waiting to retry failed elasticsearch search, aborting");
+                            "Interrupted while waiting to retry failed elasticsearch search, aborting");
                     throw new RuntimeException(e1);
                 }
             }

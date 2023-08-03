@@ -1,8 +1,8 @@
 package org.apache.flink.connector.clickhouse.internal.partitioner;
 
-import org.apache.flink.table.data.RowData;
-
 import java.util.concurrent.ThreadLocalRandom;
+
+import org.apache.flink.table.data.RowData;
 
 /** Shuffle data by random numbers. */
 public class ShufflePartitioner extends ClickHousePartitioner {

@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
+
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
@@ -37,28 +38,22 @@ import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Implementation of {@link ElasticsearchApiCallBridge} for Elasticsearch 7 and later versions.
- */
+/** Implementation of {@link ElasticsearchApiCallBridge} for Elasticsearch 7 and later versions. */
 @Internal
-public class Elasticsearch7ApiCallBridge implements
-    ElasticsearchApiCallBridge<RestHighLevelClient> {
+public class Elasticsearch7ApiCallBridge
+        implements ElasticsearchApiCallBridge<RestHighLevelClient> {
 
     private static final long serialVersionUID = -5222683870097809633L;
     private static final Logger LOG = LoggerFactory.getLogger(Elasticsearch7ApiCallBridge.class);
-    /**
-     * User-provided HTTP Host.
-     */
+    /** User-provided HTTP Host. */
     private final List<HttpHost> httpHosts;
-    /**
-     * The factory to configure the rest client.
-     */
+    /** The factory to configure the rest client. */
     private final RestClientFactory restClientFactory;
 
     private final ObjectMapper jsonParser = new ObjectMapper();
 
-    public Elasticsearch7ApiCallBridge(List<HttpHost> httpHosts,
-        RestClientFactory restClientFactory) {
+    public Elasticsearch7ApiCallBridge(
+            List<HttpHost> httpHosts, RestClientFactory restClientFactory) {
         Preconditions.checkArgument(httpHosts != null && !httpHosts.isEmpty());
         this.httpHosts = httpHosts;
         this.restClientFactory = Preconditions.checkNotNull(restClientFactory);
@@ -72,18 +67,19 @@ public class Elasticsearch7ApiCallBridge implements
     }
 
     @Override
-    public BulkProcessor.Builder createBulkProcessorBuilder(RestHighLevelClient client,
-        BulkProcessor.Listener listener) {
+    public BulkProcessor.Builder createBulkProcessorBuilder(
+            RestHighLevelClient client, BulkProcessor.Listener listener) {
         return BulkProcessor.builder(
-            (request, bulkListener) -> client.bulkAsync(request, RequestOptions.DEFAULT,
-                bulkListener), listener);
+                (request, bulkListener) ->
+                        client.bulkAsync(request, RequestOptions.DEFAULT, bulkListener),
+                listener);
     }
 
     @Override
-    public ElasticsearchInputSplit[] createInputSplitsInternal(RestHighLevelClient client,
-        String index, String type, int minNumSplits) {
-        Map<String, String> nodeMap = constructNodeId2Hostnames(new Request("GET", "/_nodes"),
-            client);
+    public ElasticsearchInputSplit[] createInputSplitsInternal(
+            RestHighLevelClient client, String index, String type, int minNumSplits) {
+        Map<String, String> nodeMap =
+                constructNodeId2Hostnames(new Request("GET", "/_nodes"), client);
 
         List<ElasticsearchInputSplit> splits = new ArrayList<>();
         JsonNode jsonNode = null;
@@ -92,36 +88,52 @@ public class Elasticsearch7ApiCallBridge implements
             String entity = executeRest(request, client);
 
             jsonNode = jsonParser.readTree(entity);
-            jsonNode.get("shards").elements()
-                .forEachRemaining(shardReplicasJsonArray -> {
+            jsonNode.get("shards")
+                    .elements()
+                    .forEachRemaining(
+                            shardReplicasJsonArray -> {
+                                List<String> locations = new ArrayList<>();
+                                AtomicInteger shardId = new AtomicInteger(Integer.MIN_VALUE);
 
-                    List<String> locations = new ArrayList<>();
-                    AtomicInteger shardId = new AtomicInteger(Integer.MIN_VALUE);
+                                shardReplicasJsonArray
+                                        .elements()
+                                        .forEachRemaining(
+                                                shardJsonObject -> {
+                                                    shardId.set(
+                                                            shardJsonObject.get("shard").asInt());
+                                                    String nodeId =
+                                                            shardJsonObject.get("node").asText();
 
-                    shardReplicasJsonArray.elements().forEachRemaining(shardJsonObject -> {
-                        shardId.set(shardJsonObject.get("shard").asInt());
-                        String nodeId = shardJsonObject.get("node").asText();
+                                                    if (nodeMap.containsKey(nodeId)) {
+                                                        locations.add(nodeMap.get(nodeId));
+                                                    } else {
+                                                        LOG.warn(
+                                                                "shard "
+                                                                        + shardId
+                                                                        + " is on the node "
+                                                                        + nodeId
+                                                                        + ", which is not in the discovery node "
+                                                                        + Stream.of(
+                                                                                        (String[])
+                                                                                                nodeMap.keySet()
+                                                                                                        .toArray())
+                                                                                .collect(
+                                                                                        Collectors
+                                                                                                .joining(
+                                                                                                        ",")));
+                                                    }
+                                                });
 
-                        if (nodeMap.containsKey(nodeId)) {
-                            locations.add(nodeMap.get(nodeId));
-                        } else {
-                            LOG.warn("shard " + shardId + " is on the node " + nodeId
-                                + ", which is not in the discovery node " + Stream.of(
-                                    (String[]) nodeMap.keySet().toArray())
-                                .collect(Collectors.joining(",")));
-                        }
-                    });
-
-                    int id = splits.size();
-                    ElasticsearchInputSplit split = new ElasticsearchInputSplit(
-                        id,
-                        locations.toArray(new String[0]),
-                        index,
-                        type,
-                        shardId.get()
-                    );
-                    splits.add(split);
-                });
+                                int id = splits.size();
+                                ElasticsearchInputSplit split =
+                                        new ElasticsearchInputSplit(
+                                                id,
+                                                locations.toArray(new String[0]),
+                                                index,
+                                                type,
+                                                shardId.get());
+                                splits.add(split);
+                            });
         } catch (IOException e) {
             LOG.info("Get split failed: {}", e.getMessage());
         }
@@ -133,18 +145,21 @@ public class Elasticsearch7ApiCallBridge implements
         return EntityUtils.toString(response.getEntity());
     }
 
-    private Map<String, String> constructNodeId2Hostnames(Request request,
-        RestHighLevelClient client) {
+    private Map<String, String> constructNodeId2Hostnames(
+            Request request, RestHighLevelClient client) {
         JsonNode jsonNode = null;
         Map<String, String> nodeMap = new HashMap<>();
         try {
             String entity = executeRest(request, client);
             jsonNode = jsonParser.readTree(entity);
-            jsonNode.get("nodes").fields()
-                .forEachRemaining(nodeJsonField -> {
-                    nodeMap.put(nodeJsonField.getKey(),
-                        nodeJsonField.getValue().get("transport_address").asText());
-                });
+            jsonNode.get("nodes")
+                    .fields()
+                    .forEachRemaining(
+                            nodeJsonField -> {
+                                nodeMap.put(
+                                        nodeJsonField.getKey(),
+                                        nodeJsonField.getValue().get("transport_address").asText());
+                            });
         } catch (IOException e) {
             LOG.info("Get nodes failed: {}", e.getMessage());
         }
@@ -153,33 +168,32 @@ public class Elasticsearch7ApiCallBridge implements
 
     @Override
     public Tuple2<String, String[]> search(RestHighLevelClient client, SearchRequest searchRequest)
-        throws IOException {
+            throws IOException {
         SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
         SearchHit[] searchHits = searchResponse.getHits().getHits();
         return new Tuple2<>(
-            searchResponse.getScrollId(),
-            Stream.of(searchHits).map(SearchHit::getSourceAsString).toArray(String[]::new)
-        );
+                searchResponse.getScrollId(),
+                Stream.of(searchHits).map(SearchHit::getSourceAsString).toArray(String[]::new));
     }
 
     @Override
     public Tuple2<String, String[]> get(RestHighLevelClient client, GetRequest getRequest)
-        throws IOException {
+            throws IOException {
         GetResponse getResponse = client.get(getRequest, RequestOptions.DEFAULT);
         String sourceAsString = getResponse.getSourceAsString();
-        return new Tuple2<>(getResponse.getId(), new String[]{sourceAsString});
+        return new Tuple2<>(getResponse.getId(), new String[] {sourceAsString});
     }
 
     @Override
-    public Tuple2<String, String[]> scroll(RestHighLevelClient client,
-        SearchScrollRequest searchScrollRequest) throws IOException {
-        SearchResponse searchResponse = client.searchScroll(searchScrollRequest,
-            RequestOptions.DEFAULT);
+    public Tuple2<String, String[]> scroll(
+            RestHighLevelClient client, SearchScrollRequest searchScrollRequest)
+            throws IOException {
+        SearchResponse searchResponse =
+                client.searchScroll(searchScrollRequest, RequestOptions.DEFAULT);
         SearchHit[] searchHits = searchResponse.getHits().getHits();
         return new Tuple2<String, String[]>(
-            searchResponse.getScrollId(),
-            Stream.of(searchHits).map(SearchHit::getSourceAsString).toArray(String[]::new)
-        );
+                searchResponse.getScrollId(),
+                Stream.of(searchHits).map(SearchHit::getSourceAsString).toArray(String[]::new));
     }
 
     @Override
@@ -198,28 +212,29 @@ public class Elasticsearch7ApiCallBridge implements
 
     @Override
     public void configureBulkProcessorBackoff(
-        BulkProcessor.Builder builder,
-        @Nullable ElasticsearchSinkBase.BulkFlushBackoffPolicy flushBackoffPolicy) {
+            BulkProcessor.Builder builder,
+            @Nullable ElasticsearchSinkBase.BulkFlushBackoffPolicy flushBackoffPolicy) {
         BackoffPolicy backoffPolicy;
         if (flushBackoffPolicy != null) {
             switch (flushBackoffPolicy.getBackoffType()) {
                 case CONSTANT:
-                    backoffPolicy = BackoffPolicy.constantBackoff(
-                        new TimeValue(flushBackoffPolicy.getDelayMillis()),
-                        flushBackoffPolicy.getMaxRetryCount());
+                    backoffPolicy =
+                            BackoffPolicy.constantBackoff(
+                                    new TimeValue(flushBackoffPolicy.getDelayMillis()),
+                                    flushBackoffPolicy.getMaxRetryCount());
                     break;
                 case EXPONENTIAL:
                 default:
-                    backoffPolicy = BackoffPolicy.exponentialBackoff(
-                        new TimeValue(flushBackoffPolicy.getDelayMillis()),
-                        flushBackoffPolicy.getMaxRetryCount());
+                    backoffPolicy =
+                            BackoffPolicy.exponentialBackoff(
+                                    new TimeValue(flushBackoffPolicy.getDelayMillis()),
+                                    flushBackoffPolicy.getMaxRetryCount());
             }
         } else {
             backoffPolicy = BackoffPolicy.noBackoff();
         }
         builder.setBackoffPolicy(backoffPolicy);
     }
-
 
     @Override
     public void verifyClientConnection(RestHighLevelClient client) throws IOException {
