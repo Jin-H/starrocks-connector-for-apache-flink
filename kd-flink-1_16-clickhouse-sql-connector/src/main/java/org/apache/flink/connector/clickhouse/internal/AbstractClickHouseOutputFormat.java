@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Flushable;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -181,6 +182,7 @@ public abstract class AbstractClickHouseOutputFormat extends RichOutputFormat<Ro
             Preconditions.checkNotNull(fieldTypes);
             Preconditions.checkNotNull(primaryKeys);
             Preconditions.checkNotNull(partitionKeys);
+            Preconditions.checkNotNull(options.getFlushInterval());
             if (primaryKeys.length > 0) {
                 LOG.warn("If primary key is specified, connector will be in UPSERT mode.");
                 LOG.warn(
