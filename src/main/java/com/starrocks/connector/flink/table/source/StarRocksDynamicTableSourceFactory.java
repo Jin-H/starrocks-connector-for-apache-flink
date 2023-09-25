@@ -14,6 +14,7 @@
 
 package com.starrocks.connector.flink.table.source;
 
+import com.starrocks.connector.flink.table.source.struct.PushDownHolder;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
@@ -25,7 +26,7 @@ import org.apache.flink.table.utils.TableSchemaUtils;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.starrocks.connector.flink.table.source.struct.PushDownHolder;
+import static com.starrocks.connector.flink.table.source.StarRocksSourceOptions.*;
 
 
 public final class StarRocksDynamicTableSourceFactory implements DynamicTableSourceFactory {
@@ -36,10 +37,13 @@ public final class StarRocksDynamicTableSourceFactory implements DynamicTableSou
         helper.validateExcept(StarRocksSourceOptions.SOURCE_PROPERTIES_PREFIX);
         ReadableConfig options = helper.getOptions();
         // validate some special properties
-        StarRocksSourceOptions sourceOptions = new StarRocksSourceOptions(options, context.getCatalogTable().getOptions());
-        TableSchema flinkSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        StarRocksSourceOptions sourceOptions = new StarRocksSourceOptions(options,
+                context.getCatalogTable().getOptions());
+        TableSchema flinkSchema = TableSchemaUtils.getPhysicalSchema(
+                context.getCatalogTable().getSchema());
         PushDownHolder pushDownHolder = new PushDownHolder();
-        return new StarRocksDynamicTableSource(sourceOptions, flinkSchema, pushDownHolder);
+        LookupConfig lookupConfig = new LookupConfig(options.get(LOOKUP_CACHE_MAX_ROWS), options.get(LOOKUP_CACHE_TTL_MS), options.get(LOOKUP_MAX_RETRIES));
+        return new StarRocksDynamicTableSource(sourceOptions, flinkSchema, pushDownHolder, lookupConfig);
     }
 
 
@@ -72,8 +76,8 @@ public final class StarRocksDynamicTableSourceFactory implements DynamicTableSou
         options.add(StarRocksSourceOptions.SCAN_MEM_LIMIT);
         options.add(StarRocksSourceOptions.SCAN_MAX_RETRIES);
         options.add(StarRocksSourceOptions.SCAN_BE_HOST_MAPPING_LIST);
-        options.add(StarRocksSourceOptions.LOOKUP_CACHE_TTL_MS);
-        options.add(StarRocksSourceOptions.LOOKUP_CACHE_MAX_ROWS);
+        options.add(LOOKUP_CACHE_TTL_MS);
+        options.add(LOOKUP_CACHE_MAX_ROWS);
         options.add(StarRocksSourceOptions.LOOKUP_MAX_RETRIES);
         return options;
     }
