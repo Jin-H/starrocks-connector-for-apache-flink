@@ -7,7 +7,7 @@
   <groupId>com.kedacom</groupId>
   <artifactId>flink-components</artifactId>
   <packaging>pom</packaging>
-  <version>1.1.8</version>
+  <version>1.1.9-RELEASE</version>
   <modules>
     <module>kd-flink-elasticsearch6-connector</module>
     <module>kd-flink-elasticsearch7-connector</module>

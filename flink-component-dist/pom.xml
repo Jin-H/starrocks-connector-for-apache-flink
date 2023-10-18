@@ -5,7 +5,7 @@
   <parent>
     <artifactId>flink-components</artifactId>
     <groupId>com.kedacom</groupId>
-    <version>1.1.8</version>
+    <version>1.1.9-RELEASE</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
