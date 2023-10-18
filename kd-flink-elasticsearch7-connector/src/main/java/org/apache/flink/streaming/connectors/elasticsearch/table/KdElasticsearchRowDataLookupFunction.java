@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import com.alibaba.fastjson.JSON;
 import org.apache.flink.annotation.Internal;
@@ -38,6 +39,7 @@ import org.apache.flink.shaded.guava18.com.google.common.collect.Lists;
 import org.apache.flink.streaming.connectors.kd.ElasticsearchApiCallBridge;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.util.DataFormatConverters;
 import org.apache.flink.table.data.util.DataFormatConverters.DataFormatConverter;
 import org.apache.flink.table.functions.FunctionContext;
@@ -163,6 +165,32 @@ public class KdElasticsearchRowDataLookupFunction<C extends AutoCloseable>
      * @param keys lookup keys
      */
     public void eval(Object... keys) {
+        if (keys == null || keys.length == 0) {
+            LOG.warn("key的长度为空");
+            collect(null);
+            return;
+        }
+        boolean allIsNull = Stream.of(keys).allMatch(Objects::isNull);
+        if (allIsNull) {
+            LOG.warn("所有的key都为空值");
+            collect(null);
+            return;
+        }
+
+        boolean allEmptyStr =
+                Stream.of(keys)
+                        .allMatch(
+                                k ->
+                                        ((k instanceof StringData) || (k instanceof String))
+                                                && StringUtils.isNullOrWhitespaceOnly(
+                                                        k.toString()));
+
+        if (allEmptyStr) {
+            LOG.warn("所有的key都为空字符串");
+            collect(null);
+            return;
+        }
+
         RowData keyRow = GenericRowData.of(keys);
         if (cache != null) {
             List<RowData> cachedRows = cache.getIfPresent(keyRow);
