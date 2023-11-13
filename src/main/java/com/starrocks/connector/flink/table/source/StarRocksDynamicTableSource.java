@@ -19,7 +19,11 @@ import com.starrocks.connector.flink.table.source.struct.SelectColumn;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
-import org.apache.flink.table.connector.source.*;
+import org.apache.flink.table.connector.source.DynamicTableSource;
+import org.apache.flink.table.connector.source.LookupTableSource;
+import org.apache.flink.table.connector.source.ScanTableSource;
+import org.apache.flink.table.connector.source.SourceFunctionProvider;
+import org.apache.flink.table.connector.source.TableFunctionProvider;
 import org.apache.flink.table.connector.source.abilities.SupportsFilterPushDown;
 import org.apache.flink.table.connector.source.abilities.SupportsLimitPushDown;
 import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
@@ -27,7 +31,12 @@ import org.apache.flink.table.expressions.ResolvedExpression;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Preconditions;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.Optional;
+
 
 public class StarRocksDynamicTableSource implements ScanTableSource, LookupTableSource,
         SupportsLimitPushDown, SupportsFilterPushDown, SupportsProjectionPushDown {

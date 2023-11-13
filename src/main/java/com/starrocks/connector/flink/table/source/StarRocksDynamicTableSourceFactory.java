@@ -26,7 +26,9 @@ import org.apache.flink.table.utils.TableSchemaUtils;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.starrocks.connector.flink.table.source.StarRocksSourceOptions.*;
+import static com.starrocks.connector.flink.table.source.StarRocksSourceOptions.LOOKUP_CACHE_TTL_MS;
+import static com.starrocks.connector.flink.table.source.StarRocksSourceOptions.LOOKUP_CACHE_MAX_ROWS;
+import static com.starrocks.connector.flink.table.source.StarRocksSourceOptions.LOOKUP_MAX_RETRIES;
 
 
 public final class StarRocksDynamicTableSourceFactory implements DynamicTableSourceFactory {
