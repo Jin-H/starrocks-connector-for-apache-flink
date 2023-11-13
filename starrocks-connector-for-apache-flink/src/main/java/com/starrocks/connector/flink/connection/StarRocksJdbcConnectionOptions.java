@@ -38,12 +38,24 @@ public class StarRocksJdbcConnectionOptions  implements Serializable {
     @Nullable
     protected final String password;
 
+    protected String database;
+
     public StarRocksJdbcConnectionOptions(String url, String username, String password) {
         this.url = Preconditions.checkNotNull(url, "jdbc url is empty");
         this.driverName = "com.mysql.jdbc.Driver";
         this.cjDriverName = "com.mysql.cj.jdbc.Driver";
         this.username = username;
         this.password = password;
+    }
+
+    public StarRocksJdbcConnectionOptions(String url, String username, String password,
+        String database) {
+        this.url = Preconditions.checkNotNull(url, "jdbc url is empty");
+        this.driverName = "com.mysql.jdbc.Driver";
+        this.cjDriverName = "com.mysql.cj.jdbc.Driver";
+        this.username = username;
+        this.password = password;
+        this.database = database;
     }
 
     public String getDbURL() {
@@ -64,5 +76,9 @@ public class StarRocksJdbcConnectionOptions  implements Serializable {
 
     public Optional<String> getPassword() {
         return Optional.ofNullable(password);
+    }
+
+    public String getDatabase() {
+        return database;
     }
 }
