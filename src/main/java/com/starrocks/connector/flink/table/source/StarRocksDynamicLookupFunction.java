@@ -57,7 +57,7 @@ public class StarRocksDynamicLookupFunction extends TableFunction<RowData> {
 
     private final String query;
 
-    private final transient StarRocksJdbcConnectionProvider connectionProvider;
+    private transient StarRocksJdbcConnectionProvider connectionProvider;
 
     private transient FieldNamedPreparedStatement statement;
 
@@ -85,10 +85,7 @@ public class StarRocksDynamicLookupFunction extends TableFunction<RowData> {
         this.lookupConfig = lookupConfig;
         MySqlDialect mySqlDialect = new MySqlDialect();
         this.query = lookupSql(sourceOptions.getTableName(), fieldNames, keyNames);
-        connectionProvider = new StarRocksJdbcConnectionProvider(
-                new StarRocksJdbcConnectionOptions(
-                        sourceOptions.getJdbcUrl(), sourceOptions.getUsername(),
-                        sourceOptions.getPassword()));
+        LOG.info("lookup query sql is : {}",query);
         this.jdbcRowConverter = mySqlDialect.getRowConverter(rowType);
         List<String> nameList = Arrays.asList(fieldNames);
         DataType[] keyTypes =
@@ -143,6 +140,11 @@ public class StarRocksDynamicLookupFunction extends TableFunction<RowData> {
                         .maximumSize(lookupConfig.getCacheMaxSize())
                         .build();
 
+        connectionProvider = new StarRocksJdbcConnectionProvider(
+            new StarRocksJdbcConnectionOptions(
+                sourceOptions.getJdbcUrl(), sourceOptions.getUsername(),
+                sourceOptions.getPassword(), sourceOptions.getDatabaseName()));
+
         establishConnectionAndStatement();
         LOG.info("Open lookup function. {}", EnvUtils.getGitInformation());
     }
@@ -171,6 +173,7 @@ public class StarRocksDynamicLookupFunction extends TableFunction<RowData> {
         for (int retry = 0; retry <= maxRetryTimes; retry++) {
             try {
                 statement = lookupKeyRowConverter.toExternal(keyRow, statement);
+                long start = System.currentTimeMillis();
                 try (ResultSet resultSet = statement.executeQuery()) {
                     ArrayList<RowData> rows = new ArrayList<>();
                     while (resultSet.next()) {
@@ -178,6 +181,10 @@ public class StarRocksDynamicLookupFunction extends TableFunction<RowData> {
                         rows.add(row);
                     }
                     rows.trimToSize();
+                    long end = System.currentTimeMillis();
+                    if (end - start > 200) {
+                        LOG.warn("lookup query starrocks cost : {}ms", (end - start));
+                    }
                     return rows;
                 }
             } catch (SQLException e) {
@@ -212,7 +219,9 @@ public class StarRocksDynamicLookupFunction extends TableFunction<RowData> {
 
     @Override
     public void close() throws Exception {
-        connectionProvider.close();
+        if (connectionProvider != null) {
+            connectionProvider.close();
+        }
         super.close();
     }
 

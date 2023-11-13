@@ -14,6 +14,7 @@
 
 package com.starrocks.connector.flink.connection;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +54,9 @@ public class StarRocksJdbcConnectionProvider implements StarRocksJdbcConnectionI
                         connection = DriverManager.getConnection(jdbcOptions.getDbURL(), jdbcOptions.getUsername().orElse(null), jdbcOptions.getPassword().orElse(null));
                     } else {
                         connection = DriverManager.getConnection(jdbcOptions.getDbURL());
+                    }
+                    if (StringUtils.isNoneBlank(jdbcOptions.getDatabase())) {
+                        connection.setSchema(jdbcOptions.getDatabase());
                     }
                 }
             }
