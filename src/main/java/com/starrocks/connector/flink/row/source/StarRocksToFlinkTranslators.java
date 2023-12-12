@@ -23,6 +23,7 @@ package com.starrocks.connector.flink.row.source;
 import com.starrocks.connector.flink.tools.DataUtil;
 
 
+import org.apache.arrow.vector.BaseFixedWidthVector;
 import org.apache.arrow.vector.BigIntVector;
 import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.DecimalVector;
@@ -247,12 +248,13 @@ public class StarRocksToFlinkTranslators {
 
         @Override
         public Object[] transToFlinkData(Types.MinorType beShowDataType, FieldVector curFieldVector, int rowCount, int colIndex, boolean nullable) {
-            // beShowDataType.Float => Flink Float
-            Preconditions.checkArgument(beShowDataType.equals(Types.MinorType.FLOAT4), "");
+            if (!(curFieldVector instanceof Float4Vector) && !(curFieldVector instanceof Float8Vector)) {
+                throw new IllegalArgumentException(String.format("BE show data type is not float, col-index : [%s]", colIndex));
+            }
             Object[] result = new Object[rowCount];
-            Float4Vector float4Vector = (Float4Vector) curFieldVector;
+            BaseFixedWidthVector vector = (BaseFixedWidthVector) curFieldVector;
             for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-                Object fieldValue = float4Vector.isNull(rowIndex) ? null : float4Vector.get(rowIndex);
+                Object fieldValue = vector.isNull(rowIndex) ? null : getValue(vector, rowIndex);
                 if (fieldValue == null && !nullable) {
                     throwNullableException(colIndex);
                 }
@@ -260,6 +262,15 @@ public class StarRocksToFlinkTranslators {
             }
             return result;
 
+        }
+
+        private Object getValue(BaseFixedWidthVector vector, int rowIndex) {
+            if (vector instanceof Float4Vector) {
+                return ((Float4Vector) vector).get(rowIndex);
+            } else if (vector instanceof Float8Vector) {
+                return ((Float8Vector) vector).get(rowIndex);
+            }
+            return null;
         }
 
     }
